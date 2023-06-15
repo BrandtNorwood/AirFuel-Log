@@ -13,15 +13,85 @@ body{
   color:var(--textColor);    
 }
 
+div {
+  display: block;
+}
+
+/*This is for the audit page*/
+/* Split the screen in half */
+.split {
+  display: block;
+  height: 80%;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+/*left side */
+.hangerDisplay {
+  align-items: center;
+  width: 30%;
+  padding: 2vh;
+  float: left;
+  left: 50%;
+  background-color: var(--backPop);
+}
+
+/*right side */
+.menuDisplay {
+  width: 60%;
+  padding: 2vh;
+  float: right;
+  right: 0;
+  background-color: var(--backPop);
+}
+
+.hangerDisplay #hangerSelect{
+  text-align: center;
+  width: 100%;
+  padding: 2%;
+  margin-bottom: 1%;
+}
+
+
+/*Audit Table*/
+div.auditTable{
+  padding:0;
+}
+
+div.auditTable ol{
+  padding: 0;
+}
+
+div.auditTable ul{
+  text-align: center;
+  font-size: 2vh;
+  border: 0.2vh solid var(--backPop);
+  border-radius: 1vmin;
+  background-color: var(--colorPop);
+  padding: 2vh;
+}
+
+div.auditTable ul.green{
+  background-color: green;
+}
+
+div.auditTable ul.yellow{
+  background-color: green;
+}
+
+form{
+  background-color: var(--colorPop);
+  padding: 4%;
+}
+
 
 /*nav bar*/
-ul{
-  position: fixed;
+ul.topnav {
+  position: static;
   top: 0;
   width: 100%;
-
-}
-ul.topnav {
   font-size: 2vh;
   list-style-type: none;
   margin: 0;
@@ -62,7 +132,6 @@ ul.topnav li a.active {
 /* (Flip) Tables*/
 table{
   empty-cells: hide;
-  margin-top: 2vh;
   width: 100%;
   padding: 8vh;
   border-collapse: collapse;
@@ -74,6 +143,7 @@ table td{
   background-color: var(--colorPop);
   padding: 2vh;
 }
+
 table #empty{
   background-color: unset;
   border: none;
