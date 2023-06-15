@@ -8,10 +8,11 @@ TODO
 -Finish Audit Page
 --Add YellowList
 --Finalize Form
---Establish Communication with Server
 
--Reformating of table.js
---split into several smaller JS files for readability and maintainablility
+-Establish Communication with Server
+--Implement on Audit page
+
+-Add "Add/Subtract" Page
 
 -Hook up to MySQL
---God if i know what this entails
+--God if I know what this entails
