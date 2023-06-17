@@ -1,28 +1,6 @@
 //change these two as needed
-const Url = "http://localhost:3000/api/data" //this will be the data base till i get my shit together
+const Url = "http://localhost:3000/" //this will be the data base till i get my shit together
 const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
-
-
-/* When the user clicks on the button,
-toggle between hiding and showing the dropdown content */
-function dropDownElement() {
-    document.getElementById("myDropdown").classList.toggle("show");
-  }
-  
-  // Close the dropdown menu if the user clicks outside of it
-  window.onclick = function(event) {
-    if (!event.target.matches('.dropbtn')) {
-      var dropdowns = document.getElementsByClassName("dropdown-content");
-      var i;
-      for (i = 0; i < dropdowns.length; i++) {
-        var openDropdown = dropdowns[i];
-        if (openDropdown.classList.contains('show')) {
-          openDropdown.classList.remove('show');
-        }
-      }
-    }
-  }
-
 
 
 
@@ -35,7 +13,7 @@ function textBoxListener(){
     });
 }
 
-
+//Populates the Hanger Select menu from the hangers constant
 function auditMenu(){
     var hangerMenu = document.getElementById("hangerSelect");
 
@@ -44,23 +22,9 @@ function auditMenu(){
     }
 
     hangerMenu.onchange = function(){auditTable();}
-
 }
 
-function addAuditList(){
-    var greenList = getGreenList();
-
-    var inputTail = document.getElementById("tailInput");
-    var inputTailValue = document.getElementById("tailInput").value;
-
-    greenList.push(inputTailValue.toUpperCase());
-
-    inputTail.value = "N";
-
-    auditTable(greenList);
-}
-
-
+//get tail numbers that have been green flaged
 function getGreenList(){
     currentHTMLGreen = document.getElementsByClassName("green");
     var currentGreen = new Array();
@@ -72,6 +36,7 @@ function getGreenList(){
     return currentGreen;
 }
 
+//gets tail numbers that have been yellow flaged
 function getYellowList(){
     currentHTMLYellow = document.getElementsByClassName("yellow");
     var currentYellow = new Array();
@@ -83,7 +48,8 @@ function getYellowList(){
     return currentYellow;
 }
 
-
+//get all tail numbers in the left column
+//this works in a stupid and rediculous way but... It does work!
 function getAllList(){
     currentHTMLList = document.getElementsByClassName("list");
     var currentList = new Array();
@@ -95,10 +61,48 @@ function getAllList(){
     return currentList;
 }
 
+// Example POST method implementation:
+async function postData(url = "", sendData = {}) {
+    const response =await fetch(url, {
+        method: "PUT", 
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(sendData)
+    });
+}
 
 
-function auditTable(greenList,yellowList){
-    fetch(Url)
+
+
+//adds aircraft to the left column (yellow or green flaged)
+function addAuditList(){
+    //retrives green and yellow lists
+    var greenList = getGreenList();
+    var yellowList = getYellowList();
+    var tableList = getAllList();
+
+    //defines and reads text box for future use
+    var inputTail = document.getElementById("tailInput");
+    var inputTailValue = document.getElementById("tailInput").value;
+
+    var isOnTable = false;
+    for(element of greenList){if (inputTailValue.toUpperCase() == element){ isOnTable = true;}}
+    for(element of tableList){if (inputTailValue.toUpperCase() == element){ isOnTable = true;}}
+
+    if (!isOnTable){
+        yellowList.push(inputTailValue.toUpperCase());
+    }
+
+    //adds to greenlist
+    greenList.push(inputTailValue.toUpperCase());
+
+    //clears the text box
+    inputTail.value = "N";
+
+    auditTable(greenList,yellowList);
+}
+
+function sendHangerList(){
+    fetch(Url+"hangerData")
     .then(function(response){
         if(response.ok){
             return response.json();
@@ -106,7 +110,42 @@ function auditTable(greenList,yellowList){
         throw new Error('"fetch" threw Json Formating error - ' + response.status + ' ' + response.statusText);
     })
     .then(function(data){
+        //seperate the table from the JSON object
+        tableData = data.testTable;
+        hangerSelect = document.getElementById("hangerSelect");
 
+        var selectedHanger = 0;
+
+        for (var i=0; i < hangers.length; i++){
+            if (hangers[i] == hangerSelect.value){
+                selectedHanger = i;
+            }
+        }
+
+        tableData[selectedHanger] = getGreenList().concat(getYellowList());
+
+        postData(Url + "auditData", tableData)
+            .then(() => { 
+                auditTable();  
+            });
+    })
+      .catch(function(error) {
+        // Handle any errors that occurred during the request
+        console.log(error)
+      });
+}
+
+
+//Defines the Left side audit table
+function auditTable(greenList,yellowList){
+    fetch(Url+"hangerData")
+    .then(function(response){
+        if(response.ok){
+            return response.json();
+        }
+        throw new Error('"fetch" threw Json Formating error - ' + response.status + ' ' + response.statusText);
+    })
+    .then(function(data){
         //seperate the table from the JSON object
         tableData = data.testTable;
         hangerSelect = document.getElementById("hangerSelect");
@@ -125,18 +164,32 @@ function auditTable(greenList,yellowList){
         //create the html objects for the table
         var table = document.createElement('ol');
 
+        if(yellowList != undefined){
+            for (var i=0; i < yellowList.length; i++){
+                tableData[selectedHanger].push(yellowList[i]);
+            }
+        }
+
         tableData[selectedHanger].forEach(element => {
             var cell = document.createElement('ul');
             cell.appendChild(document.createTextNode(element))
 
             if(greenList != undefined){
                 for (var i=0; i < greenList.length; i++){
-                    //console.log(greenList[i]);
                     if (greenList[i] == element){
                         cell.setAttribute("class","green");
                     }
                 }
             }
+
+            if(yellowList != undefined){
+                for (var i=0; i < yellowList.length; i++){
+                    if (yellowList[i] == element){
+                        cell.setAttribute("class","yellow");
+                    }
+                }
+            }
+
             if (cell.getAttribute("class") != null){
                 cell.setAttribute("class",cell.getAttribute("class") + " list")
             }else {
@@ -147,9 +200,7 @@ function auditTable(greenList,yellowList){
         });
     
         table.setAttribute("id","list")
-        outputTable.appendChild(table);
-
-                
+        outputTable.appendChild(table);     
 
       })
       .catch(function(error) {
