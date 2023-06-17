@@ -61,17 +61,34 @@ function getAllList(){
     return currentList;
 }
 
-// Example POST method implementation:
+// Example POST method implementation: (stolen from ChatGPT)
 async function postData(url = "", sendData = {}) {
-    const response =await fetch(url, {
+    await fetch(url, {
         method: "PUT", 
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(sendData)
     });
 }
 
+function resetTable(){
+    var yellowList = new Array();
+    var greenList = new Array();
+
+    auditTable(greenList, yellowList);
+}
 
 
+function greenListAll(){
+    var tableList = getAllList();
+    var yellowList = getYellowList();
+    var greenList = new Array();
+
+    for (element of tableList){
+        greenList.push(element);
+    }
+
+    auditTable(greenList,yellowList);
+}
 
 //adds aircraft to the left column (yellow or green flaged)
 function addAuditList(){
@@ -91,9 +108,10 @@ function addAuditList(){
     if (!isOnTable){
         yellowList.push(inputTailValue.toUpperCase());
     }
-
-    //adds to greenlist
-    greenList.push(inputTailValue.toUpperCase());
+    else {
+        //adds to greenlist
+        greenList.push(inputTailValue.toUpperCase());
+    }
 
     //clears the text box
     inputTail.value = "N";
@@ -125,9 +143,10 @@ function sendHangerList(){
         tableData[selectedHanger] = getGreenList().concat(getYellowList());
 
         postData(Url + "auditData", tableData)
-            .then(() => { 
-                auditTable();  
-            });
+        .then(() => {
+            resetTable();
+        });
+
     })
       .catch(function(error) {
         // Handle any errors that occurred during the request
