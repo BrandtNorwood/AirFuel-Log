@@ -9,5 +9,8 @@ TODO
 --Make it look good
 --Make it work
 
+-Secure audit page
+--Move more processing off client side and onto server side
+
 -Hook up to MySQL
 --God if I know what this entails
