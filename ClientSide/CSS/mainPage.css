@@ -1,0 +1,27 @@
+/* (Flip) Tables*/
+table{
+    empty-cells: hide;
+    width: 100%;
+    padding: 8vh;
+    border-collapse: collapse;
+  }
+  table td{
+    border: 0.2vh solid var(--background);
+    border-radius: 1vmin;
+    background-color: var(--colorPop);
+    padding: 2vh;
+  }
+  
+  table #empty{
+    background-color: unset;
+    border: none;
+  }
+  table th{ 
+    border: 0.2vh solid #ddd;
+    padding: 8vh;
+    padding-top: 2vh;
+    padding-bottom: 2vh;
+  }
+  table #ramp{
+    background-color: var(--backPop);
+  }

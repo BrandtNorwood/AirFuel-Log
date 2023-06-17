@@ -1,0 +1,72 @@
+/*This is for the audit page*/
+/* Split the screen in half */
+.split {
+  display: block;
+  height: 84%;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+
+
+/*right side */
+.menuDisplay {
+  width: 50%;
+  padding: 2%;
+  float: right;
+  right: 0;
+  background-color: var(--backPop);
+}
+
+.hangerDisplay #hangerSelect{
+  text-align: center;
+  width: 100%;
+  padding: 2%;
+  margin-bottom: 1%;
+}
+
+form{
+  background-color: var(--colorPop);
+  padding: 4%;
+}
+
+
+
+
+/*left side */
+.hangerDisplay {
+  align-items: center;
+  width: 40%;
+  padding: 2%;
+  float: left;
+  left: 50%;
+  background-color: var(--backPop);
+}
+
+
+/*Audit Table*/
+div.auditTable{
+  padding:0;
+}
+
+div.auditTable ol{
+  padding: 0;
+}
+
+div.auditTable ul{
+  text-align: center;
+  border: 0.2vh solid var(--backPop);
+  border-radius: 1vmin;
+  background-color: var(--colorPop);
+  padding: 2vh;
+}
+
+div.auditTable ul.green{
+  background-color: green;
+}
+
+div.auditTable ul.yellow{
+  background-color: orange;
+}
