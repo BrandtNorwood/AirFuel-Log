@@ -2,14 +2,14 @@
 
 This script is the server for this project. It is intended to be run within NodeJS
 
-- Brandt Norwood
+I got most of this off the internet - Brandt Norwood
 */
 
-const express = require('express');
-const http = require('http');
 
+const express = require('express');
 const app = express();
 
+//this better not be in prod
 var testTable = [
   ["N76NB", "N510AF"],
   ["N446BY", "N988C", "N71TB", "N101BK"],
@@ -18,8 +18,6 @@ var testTable = [
   ["N791CD","N110CA", "N216N", "N810KS", "N89KT", "N115FJ", "N6342B", "N1231B", "N811KS", "N726KR", "N449BY", "N447BY", "N725LK", "N227PG", "N814KS", "N5226D", "N98MV", "N305KM"],
   ["N701FC", "N232RJ", "N48LT", "N643RT", "N448BY", "N404CM", "N351LS", "N21DP"]
 ];
-
-// I got most of this off the internet
 
 //slay the god forsaken CORS dragon
 //ALL HAIL CHAT GPT for this solution
@@ -47,28 +45,29 @@ app.get('/hangerData', (req, res) => {
   console.log(`Server Contacted - ` + Date.now());
 });
 
+
 //handles new data being given to the server from the audit table menu
 app.put('/auditData', (req, res) =>{
 
+  //retrive data and overwrite the temp table with it
   var newData = req.body;
+  testTable = newData;
 
+  //debuggin!
   var printData = "";
-
   for (var i = 0; i < newData.length; i++){
     printData += ("\n[" + newData[i] + "]");
   }
+  console.log("Server Given Table! - " + Date.now() + printData)
 
-  testTable = newData;
-
-  console.log("Server Given Table! - " + printData)
-
+  //this is required to avoid hanging processes on client side
   res.send("Put request received");
 });
 
 
 
 // Start the server
-const port = 3000; //dont ask just change
+const port = 3000; //dont ask why just fix it
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
