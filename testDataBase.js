@@ -61,6 +61,8 @@ app.put('/auditData', (req, res) =>{
   testTable = newData;
 
   console.log("Server Given Table! - " + printData)
+
+  res.send("Put request received");
 });
 
 
