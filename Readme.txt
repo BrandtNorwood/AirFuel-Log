@@ -5,14 +5,9 @@ This is both Server/Client sides for a hanger log website I'm working on for my 
 
 
 TODO
--Finish Audit Page
---Add YellowList
---Finalize Form
-
--Establish Communication with Server
---Implement on Audit page
-
--Add "Add/Subtract" Page
+-Finish addDelete page
+--Make it look good
+--Make it work
 
 -Hook up to MySQL
 --God if I know what this entails
