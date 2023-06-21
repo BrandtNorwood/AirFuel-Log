@@ -13,6 +13,7 @@ TODO
 --Move more processing off client side and onto server side
 
 -Hook up to MySQL
---God if I know what this entails
+--SQL fields may be [blockIn,blockOut,tail,hangerID]
+
 
 -Billables Printout
