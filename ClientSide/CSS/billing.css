@@ -1,0 +1,65 @@
+/* Split the screen in half */
+.split {
+    display: block;
+    height: 84%;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 20px;
+}  
+  
+/*right side */
+.menuDisplay {
+    width: 40%;
+    padding: 2%;
+    float: right;
+    right: 0;
+    border: 0.2vh solid white;
+}
+
+form{
+    background-color: var(--colorPop);
+    padding: 4%;
+}
+
+
+/*left side */
+.billingDisplay {
+    align-items: center;
+    width: 50%;
+    padding: 2%;
+    float: left;
+    left: 50%;
+    border: 0.2vh solid white;
+}
+
+/*Billing Table*/
+div.billingTable {
+    padding: 0;
+}
+
+div.billingTable ol{
+    padding: 0;
+    list-style-type: none;
+}
+
+div.billingTable ol #aircraftHistory{
+    margin-left: 5%;
+}
+  
+div.billingTable ul{
+    border: 0.2vh solid var(--background);
+    border-radius: 1vmin;
+    background-color: var(--colorPop);
+    padding: 2vh;
+}
+
+@media print { 
+    .menuDisplay, .topnav { display: none !important; } 
+    .billingDisplay { 
+        display: block!important; 
+        width: 90%;
+        color: black;
+    }
+}
+

@@ -1,0 +1,74 @@
+.split {
+    display: block;
+    height: 84%;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+
+
+
+/*Right Side*/
+.menuDisplay {
+    width: 50%;
+    padding: 2%;
+    float: right;
+    right: 0;
+    border: 0.2vh solid white;
+}
+
+form{
+    background-color: var(--colorPop);
+    padding: 4%;
+}
+
+.button {
+    background-color: #e7e7e7;
+    border: 0.2vh solid black;
+    color: black;
+    height: 7%;
+    width: 47%;
+    text-align: center;
+    margin: 1%;
+    border-radius: 0.4vmin;
+  }
+
+
+
+/*Left Side*/
+.hangerDisplay {
+    align-items: center;
+    width: 40%;
+    padding: 2%;
+    float: left;
+    left: 50%;
+    border: 0.2vh solid white;
+}
+
+#hangerSelect{
+    text-align: center;
+    width: 100%;
+    padding: 2%;
+    margin-bottom: 1%;
+}
+
+/*Audit Table*/
+div.auditTable{
+    padding:0;
+  }
+  
+  div.auditTable ol{
+    padding: 0;
+  }
+  
+  div.auditTable ul{
+    text-align: center;
+    border: 0.2vh solid var(--background);
+    border-radius: 1vmin;
+    background-color: var(--colorPop);
+    padding: 2vh;
+  }
+
+

@@ -1,0 +1,57 @@
+/*I call this... OLED Theme*/
+
+/*Color Variables*/
+:root {
+  --background: #212527;
+  --backPop: #3d4549;
+  --slightColor: #b1c6d1;
+  --colorPop: #003C78;
+  --textColor: #F0F0F0;
+}
+
+body{
+  background: var(--background);
+  font-family: sans-serif;
+  font-size: larger;
+  color:var(--textColor);    
+}
+
+div {
+  display: block;
+}
+
+
+/*nav bar*/
+ul.topnav {
+  position: static;
+  top: 0;
+  width: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--backPop);
+}
+
+ul.topnav li img{
+  width: 7vh;
+  margin-top: 1vh;
+  margin-right: 2vh;
+  float: right;
+}
+
+ul.topnav li a {
+  float: left;
+  color: white;
+  text-align: center;
+  padding: 2vh 3vh;
+  text-decoration: none;
+}
+
+ul.topnav li a:hover:not(.active) {
+  background-color: #000;
+}
+
+ul.topnav li a.active {
+  background-color:var(--colorPop);
+}
