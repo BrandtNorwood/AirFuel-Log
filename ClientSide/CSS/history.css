@@ -1,0 +1,23 @@
+/*why must life be this cruel*/
+
+form{
+    border: 0.2vh solid white;
+    text-align: center;
+    background-color: var(--colorPop);
+    padding: 1%;
+}
+
+input{
+    padding: 0.8%;
+    border: none;
+}
+
+select{
+    padding: 0.8%;
+}
+
+#resultTable{
+    border: 0.2vh solid white; 
+    padding: 1%; 
+    height: 75%;
+}

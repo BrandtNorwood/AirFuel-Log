@@ -1,3 +1,5 @@
+/*I call this... OLED Theme*/
+
 /*Color Variables*/
 :root {
   --background: #212527;
@@ -52,9 +54,4 @@ ul.topnav li a:hover:not(.active) {
 
 ul.topnav li a.active {
   background-color:var(--colorPop);
-}
-
-@media screen and (max-width: 300px) {
-  ul.topnav li.right, 
-  ul.topnav li {float: none;}
 }

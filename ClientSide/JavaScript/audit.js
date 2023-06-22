@@ -64,7 +64,7 @@ function getAllList(){
 // Example POST method implementation: (stolen from ChatGPT)
 async function postData(url = "", sendData = {}) {
     await fetch(url, {
-        method: "PUT", 
+        method: "POST", 
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(sendData)
     });
@@ -74,7 +74,7 @@ function resetTable(){
     var yellowList = new Array();
     var greenList = new Array();
 
-    auditTable(greenList, yellowList);
+    auditTable();
 }
 
 
@@ -99,24 +99,27 @@ function addAuditList(){
 
     //defines and reads text box for future use
     var inputTail = document.getElementById("tailInput");
-    var inputTailValue = document.getElementById("tailInput").value;
+    var inputTailValue = document.getElementById("tailInput").value.trim();
 
-    var isOnTable = false;
-    for(element of greenList){if (inputTailValue.toUpperCase() == element){ isOnTable = true;}}
-    for(element of tableList){if (inputTailValue.toUpperCase() == element){ isOnTable = true;}}
+    if (inputTailValue != "N" && inputTailValue != ""){
 
-    if (!isOnTable){
-        yellowList.push(inputTailValue.toUpperCase());
+        var isOnTable = false;
+        for(element of greenList){if (inputTailValue.toUpperCase() == element){ isOnTable = true;}}
+        for(element of tableList){if (inputTailValue.toUpperCase() == element){ isOnTable = true;}}
+
+        if (!isOnTable){
+            yellowList.push(inputTailValue.toUpperCase());
+        }
+        else {
+            //adds to greenlist
+            greenList.push(inputTailValue.toUpperCase());
+        }
+
+        //clears the text box
+        inputTail.value = "N";
+
+        auditTable(greenList, yellowList);
     }
-    else {
-        //adds to greenlist
-        greenList.push(inputTailValue.toUpperCase());
-    }
-
-    //clears the text box
-    inputTail.value = "N";
-
-    auditTable(greenList,yellowList);
 }
 
 function sendHangerList(){
@@ -129,7 +132,6 @@ function sendHangerList(){
     })
     .then(function(data){
         //seperate the table from the JSON object
-        tableData = data.testTable;
         hangerSelect = document.getElementById("hangerSelect");
 
         var selectedHanger = 0;
@@ -140,9 +142,11 @@ function sendHangerList(){
             }
         }
 
-        tableData[selectedHanger] = getGreenList().concat(getYellowList());
+        var inputHanger= getGreenList().concat(getYellowList());
 
-        postData(Url + "auditData", tableData)
+        var sendData = [selectedHanger,inputHanger];
+
+        postData(Url + "auditData", sendData)
         .then(() => {
             resetTable();
         });
@@ -189,9 +193,13 @@ function auditTable(greenList,yellowList){
             }
         }
 
+        tableData[selectedHanger].sort();
+
         tableData[selectedHanger].forEach(element => {
             var cell = document.createElement('ul');
             cell.appendChild(document.createTextNode(element))
+
+            if (greenList == undefined && yellowList == undefined){cell.setAttribute("class","blue")}
 
             if(greenList != undefined){
                 for (var i=0; i < greenList.length; i++){

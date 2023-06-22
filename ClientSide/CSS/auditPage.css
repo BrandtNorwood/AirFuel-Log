@@ -17,7 +17,7 @@
   padding: 2%;
   float: right;
   right: 0;
-  background-color: var(--backPop);
+  border: 0.2vh solid white;
 }
 
 .hangerDisplay #hangerSelect{
@@ -32,6 +32,25 @@ form{
   padding: 4%;
 }
 
+.button {
+  background-color: #e7e7e7;
+  border: 0.2vh solid black;
+  color: black;
+  padding: 1% 4%;
+  text-align: center;
+  margin: 1%;
+  border-radius: 0.4vmin;
+}
+
+#addTail{
+  height: 7%;
+  width: 100%;
+}
+
+#menu{
+  width: 30%;
+  height: 7%;
+}
 
 
 
@@ -42,7 +61,7 @@ form{
   padding: 2%;
   float: left;
   left: 50%;
-  background-color: var(--backPop);
+  border: 0.2vh solid white;
 }
 
 
@@ -57,9 +76,9 @@ div.auditTable ol{
 
 div.auditTable ul{
   text-align: center;
-  border: 0.2vh solid var(--backPop);
+  border: 0.2vh solid var(--background);
   border-radius: 1vmin;
-  background-color: var(--colorPop);
+  background-color: red;
   padding: 2vh;
 }
 
@@ -69,4 +88,8 @@ div.auditTable ul.green{
 
 div.auditTable ul.yellow{
   background-color: orange;
+}
+
+div.auditTable ul.blue{
+  background-color: var(--colorPop);
 }

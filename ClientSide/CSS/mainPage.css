@@ -25,3 +25,8 @@ table{
   table #ramp{
     background-color: var(--backPop);
   }
+
+  @media print { 
+    .topnav { display: none !important; } 
+    table th{ padding: 0.5%; }
+}

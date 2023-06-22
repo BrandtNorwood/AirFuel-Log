@@ -2,7 +2,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
+        <title>FJC HangerLog Audit</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="CSS/defaultLook.css">
@@ -17,13 +17,11 @@
                     <li><a href="addDelete.html">Add / Delete</a></li>
                     <li><a class = "active" href="auditmode.html">Audit</a></li>
                     <li><a href="history.html">History</a></li>
+                    <li><a href="billingReport.html">Billable Report</a></li>
                     <li><img src="Logo_Airplane_Globe_Color.png"></img></li>
                 </ul>
             </nav>
         </header>
-        
-        <!--This is going to be a massive pain in the A**, but, it will be totaly worth it-->
-        <!--This also will not be mobile frendly because f**k me-->
         <main>
             <div style="overflow-x:auto; padding: 1vh;"></div>
 
@@ -35,7 +33,7 @@
                 <div class = "auditTable" id = "auditTable"></div>
                 <script> 
                     //lets flip... i mean, create some tables
-                    auditTable(0);
+                    auditTable();
                 </script>
             </div>
 
@@ -43,13 +41,15 @@
                 <form onsubmit="return false;">
                     Enter Aircraft Tail Number - 
                     <input type="text" id = "tailInput" value="N">
-                    <input type="button" onclick = "addAuditList();" value="Add Tail">
+                    <input type="button" id = "addTail"class="button" onclick = "addAuditList();" value="Add Tail">
                     <script>textBoxListener();</script>
                 </form>
-                <input type="button" onclick="alert('As you enter aircraft tails you will see them turn green in the left column. if they are not highlighted green they will be deleted upon hanger submition')"value="Help">
-                <br><input type="button" value="Submit" onclick="sendHangerList()">
-                <br><input type="button" value="GreenList Them All!" onclick="greenListAll()">
-                <br><input type="button" value="reset Table" onclick="resetTable()">
+                <div style="border: 0.2vh solid white; padding: 1%;">
+                    <input id="menu" type="button" class="button" onclick="alert('As you enter aircraft tails you will see them turn green in the left column. if they are not highlighted green they will be deleted upon hanger submition')"value="Help">
+                    <input id="menu" type="button" class="button" value="Submit" onclick="sendHangerList()">
+                    <input id="menu" type="button" class="button" value="Clear Changes" onclick="resetTable()">
+                    <!--input type="button" class="button" value="GreenList Them All!" onclick="greenListAll()"-->
+                </div>
             </div>
           </main>
     </body>

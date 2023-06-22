@@ -25,9 +25,70 @@ function selectMenu(){
 }
 
 
+//hanndles the add button
+function addAircraft(){
+    //defining elements and retreiving input data
+    var hangerSelect = document.getElementById("hangerSelect");
+    var inputTail = document.getElementById("tailInput");
+    var inputTailValue = document.getElementById("tailInput").value.trim().toUpperCase();
+
+    if (inputTailValue != "N" && inputTailValue != ""){
+
+        //finds and sets selected hanger
+        var selectedHanger = 0;
+        for (var i=0; i < hangers.length; i++){
+            if (hangers[i] == hangerSelect.value){
+                selectedHanger = i;
+            }
+        }
+
+        //sends selected hanger and tail to server to be added
+        var sendData = [selectedHanger,inputTailValue];
+        fetch(Url + "singleAdd", {
+            method: "PUT", 
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(sendData)
+        })
+        .then(() => {
+            buildTable(); //refreshes table
+        });
+    }
+    inputTail.value = "N"; //clears input box
+}
+
+
+function removeAircraft(){
+    //defining elements and retreiving input data
+    var hangerSelect = document.getElementById("hangerSelect");
+    var inputTail = document.getElementById("tailInput");
+    var inputTailValue = document.getElementById("tailInput").value.trim().toUpperCase();
+
+    if (inputTailValue != "N" && inputTailValue != ""){
+
+        //finds and sets selected hanger
+        var selectedHanger = 0;
+        for (var i=0; i < hangers.length; i++){
+            if (hangers[i] == hangerSelect.value){
+                selectedHanger = i;
+            }
+        }
+
+        //sends selected hanger and tail to server to be added
+        var sendData = [selectedHanger,inputTailValue];
+        fetch(Url + "singleRemove", {
+            method: "DELETE", 
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(sendData)
+        })
+        .then(() => {
+            buildTable(); //refreshes table
+        });
+    }
+    inputTail.value = "N"; //clears input box
+}
 
 //Defines the Left side audit table
-function buildTable(greenList,yellowList){
+function buildTable(){
     fetch(Url+"hangerData")
     .then(function(response){
         if(response.ok){
@@ -54,37 +115,9 @@ function buildTable(greenList,yellowList){
         //create the html objects for the table
         var table = document.createElement('ol');
 
-        if(yellowList != undefined){
-            for (var i=0; i < yellowList.length; i++){
-                tableData[selectedHanger].push(yellowList[i]);
-            }
-        }
-
         tableData[selectedHanger].forEach(element => {
             var cell = document.createElement('ul');
             cell.appendChild(document.createTextNode(element))
-
-            if(greenList != undefined){
-                for (var i=0; i < greenList.length; i++){
-                    if (greenList[i] == element){
-                        cell.setAttribute("class","green");
-                    }
-                }
-            }
-
-            if(yellowList != undefined){
-                for (var i=0; i < yellowList.length; i++){
-                    if (yellowList[i] == element){
-                        cell.setAttribute("class","yellow");
-                    }
-                }
-            }
-
-            if (cell.getAttribute("class") != null){
-                cell.setAttribute("class",cell.getAttribute("class") + " list")
-            }else {
-                cell.setAttribute("class","list");
-            }
 
             table.appendChild(cell);
         });

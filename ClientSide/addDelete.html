@@ -2,7 +2,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
+        <title>FJC HangerLog Modify</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="CSS/defaultLook.css">
@@ -17,6 +17,7 @@
                     <li><a class = "active" href="addDelete.html">Add / Delete</a></li>
                     <li><a href="auditmode.html">Audit</a></li>
                     <li><a href="history.html">History</a></li>
+                    <li><a href="billingReport.html">Billable Report</a></li>
                     <li><img src="Logo_Airplane_Globe_Color.png"></img></li>
                 </ul>
             </nav>
@@ -24,7 +25,7 @@
 
         <div style="overflow-x:auto; padding: 1vh;"></div>
 
-        <!--This one shouldnt be too hard, hopefully-->
+        <!--This one shouldnt be too hard, hopefully...  -.O    -->
 
 
         <div class = "split hangerDisplay">
@@ -35,22 +36,24 @@
             <div class = "auditTable" id = "auditTable"></div>
             <script> 
                 //lets flip... i mean, create some tables
-                buildTable(0);
+                buildTable();
             </script>
         </div>
 
         <div class="split menuDisplay">
             <form onsubmit="return false;">
                 <a>Enter Aircraft Tail Number -</a>
-
-                <input type="text" id = "tailInput" value="N">
-                <input type="button" onclick = "" value="Add">
-                <input type="button" onclick = "" value="Remove">
+                <input type="text" id = "tailInput" value="N"> 
+                <br>
+                <input class="button" type="button" onclick = "addAircraft()" value="Add">
+                <input class="button" type="button" onclick = "removeAircraft()" value="Remove">
                 <script>textBoxListener();</script>
             </form>
 
-            <a>this page is not finished...</a>
-            <a style="float:right">I'll make it look nice later</a>
+
+            <div style="border: 0.2vh solid white; padding: 1%;">
+                <input class="button"type="button" onclick="buildTable()" value="Refresh" style="bottom: 0;">
+            </div>
         </div>
 
     </body>
