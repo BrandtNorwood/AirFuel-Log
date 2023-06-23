@@ -25,6 +25,20 @@ function selectMenu(){
 }
 
 
+//get all tail numbers in the left column
+//this works in a stupid and rediculous way but... It does work!
+function getAllList(){
+    currentHTMLList = document.getElementsByClassName("list");
+    var currentList = new Array();
+
+    for(element of currentHTMLList){
+        currentList.push(element.innerText);
+    }
+
+    return currentList;
+}
+
+
 //hanndles the add button
 function addAircraft(){
     //defining elements and retreiving input data
@@ -32,7 +46,13 @@ function addAircraft(){
     var inputTail = document.getElementById("tailInput");
     var inputTailValue = document.getElementById("tailInput").value.trim().toUpperCase();
 
-    if (inputTailValue != "N" && inputTailValue != ""){
+    var valueOnTable = false;
+
+    for (item of getAllList()){
+        if (item == inputTailValue) {valueOnTable = true;}
+    }
+
+    if (inputTailValue != "N" && inputTailValue != "" && !valueOnTable){
 
         //finds and sets selected hanger
         var selectedHanger = 0;
@@ -63,7 +83,13 @@ function removeAircraft(){
     var inputTail = document.getElementById("tailInput");
     var inputTailValue = document.getElementById("tailInput").value.trim().toUpperCase();
 
-    if (inputTailValue != "N" && inputTailValue != ""){
+    var valueOnTable = false;
+
+    for (item of getAllList()){
+        if (item == inputTailValue) {valueOnTable = true;}
+    }
+
+    if (inputTailValue != "N" && inputTailValue != "" && valueOnTable){
 
         //finds and sets selected hanger
         var selectedHanger = 0;
@@ -87,6 +113,12 @@ function removeAircraft(){
     inputTail.value = "N"; //clears input box
 }
 
+function setInput(tailNumber){
+    var inputTail = document.getElementById("tailInput");
+
+    inputTail.value = tailNumber;
+}
+
 //Defines the Left side audit table
 function buildTable(){
     fetch(Url+"hangerData")
@@ -98,7 +130,7 @@ function buildTable(){
     })
     .then(function(data){
         //seperate the table from the JSON object
-        tableData = data.testTable;
+        tableData = data.sqlTable;
         hangerSelect = document.getElementById("hangerSelect");
         outputTable = document.getElementById("auditTable");
 
@@ -117,12 +149,14 @@ function buildTable(){
 
         tableData[selectedHanger].forEach(element => {
             var cell = document.createElement('ul');
-            cell.appendChild(document.createTextNode(element))
+            cell.appendChild(document.createTextNode(element));
+
+            cell.setAttribute("onclick","setInput('"+element+"')");
+            cell.setAttribute("class","list");
 
             table.appendChild(cell);
         });
     
-        table.setAttribute("id","list")
         outputTable.appendChild(table);     
 
       })
