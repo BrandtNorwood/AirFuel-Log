@@ -7,7 +7,16 @@ I got most of this off the internet - Brandt Norwood
 
 
 const express = require('express');
+var mysql = require('mysql2');
 const app = express();
+
+var con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "6ceyxhuv",
+  database: "FJCHangerLog",
+  insecureAuth: true
+});
 
 var fullDebug = true;
 
@@ -29,7 +38,7 @@ var testTable = [
   ['N113SW','N115FJ','N250AW','N303RR','N521BB','N604BB','N6342B','N700WK','N701FC','N706WL','N79SG','N817PA','N871RF'],
   ['N1231B','N305KM','N382CP','N447BY','N449BY','N5226D','N5256S','N726KR','N770LE','N791CD'],
   ['N110CA','N232RJ','N269LS','N351LS','N404CM','N448BY','N48LT','N524BB','N643RT','N686PC']
-];*/
+];
 
 var testTable = [
   ['N115FJ','N444AM','N6342B','N709EA','N895CA','N995KT'],
@@ -38,13 +47,23 @@ var testTable = [
   ['N269LS','N303RR','N525BB','N550LG','N604BB','N643RT','N700WK','N701FC','N706WL','N810KS','N813KS','N871RF'],
   ['N1231B','N1RF','N216N','N227PG','N305KM','N382CP','N447BY','N449BY','N521BB','N725LK','N726KR','N791CD','N811KS','N817PA'],
   ['N110CA','N232RJ','N351LS','N404CM','N448BY','N48LT','N524BB','N189VT','N26QL','N510AF','N773SW']
+];*/
+
+var testTable = [
+  ['N521QS','N6342B'],
+  ['N101BK','N446BY','N5256S','N555DS','N83CC'],
+  ['N113SW','N115FJ','N41XP','N5226D','N602FJ','N6053S','N686PC','N701FJ','N79SG','N98MV'],
+  ['N303RR','N521BB','N525BB','N604BB','N700WK','N701FC','N706WL','N770LE','N810KS','N811KS','N813KS','N817PA','N871RF'],
+  ['N1231B','N216N','N227PG','N305KM','N382CP','N447BY','N449BY','N510AF','N550LG','N725LK','N726KR','N791CD','N895CA','N918SA'],
+  ['N110CA','N232RJ','N26QL','N351LS','N404CM','N448BY','N48LT','N524BB','N773SW','N643RT']
 ];
 
-
+//get sql formatted datetime (used for debug too)
 function getTime(){
-  const time = new Date();
-  return ((time.getMonth()+1) +"/"+time.getDay()+"/"+time.getFullYear()+" - "+time.getHours()+
-      ":"+time.getMinutes()+":"+time.getSeconds());
+  const now = new Date(Date.now());
+  const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
+
+  return formattedDateTime;
 }
 
 //slay the god forsaken CORS dragon
@@ -69,17 +88,41 @@ app.get("/toggleDebug", (req,res) => {
 
 // Handle GET hanger data request
 app.get('/hangerData', (req, res) => {
+  con.connect(function(err) {
+    const query = "SELECT TailNumber, HangerID FROM aircraftmovements WHERE BlockOut IS NULL;";
+    con.query(query, function (err, result) {
+      if (err) throw err;
+      
+      var tailNumbersByHanger = {};
 
-  for (hanger of testTable){
-    hanger.sort();
-  }
-  // Create a JSON object
-  const json = {testTable};
+      for (var i = 0; i < result.length; i++) {
+        var aircraft = result[i];
+        var tailNumber = aircraft.TailNumber;
+        var hangerID = aircraft.HangerID;
 
-  // Respond with the JSON object
-  res.json(json);
+        if (!tailNumbersByHanger[hangerID]) {
+          tailNumbersByHanger[hangerID] = [tailNumber];
+        } else {
+          tailNumbersByHanger[hangerID].push(tailNumber);
+        }
+      }
 
-  console.log(`Server Table Requested - ` + getTime());
+      var sqlTable = Object.values(tailNumbersByHanger);
+
+      // Sort tail numbers within each hanger
+      for (var j = 0; j < sqlTable.length; j++) {
+        sqlTable[j].sort();
+      }
+
+      // Create a JSON object
+      const json = { sqlTable };
+
+      console.log(`Server Table Requested - ${getTime()}`);
+
+      // Respond with the JSON object
+      res.json(json);
+    });
+  });
 });
 
 //handles the single aircraft add to hanger
@@ -91,11 +134,18 @@ app.put('/singleAdd',(req,res) =>{
   var toHanger = newData[0];
   var newTail = newData[1];
 
-  //adds aircraft to selected hanger
-  testTable[toHanger].push(newTail)
+  //adds aircraft to selected hanger in sql table
+  con.connect(function(err) {
+    if (err) throw err;
+    console.log("Connected!");
 
-  //resorts hanger
-  testTable[toHanger].sort();
+    var sql = "INSERT INTO aircraftmovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"')";
+    
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+    });
+  });
+
 
   //required to avoid hanging client processes (maybe implement in the future)
   res.send("Put request received");
@@ -113,6 +163,16 @@ app.delete('/singleRemove',(req,res) =>{
   //parces data (this is hard coded but it shouldnt cause problems)
   var toHanger = newData[0];
   var newTail = newData[1];
+
+  con.connect(function(err) {
+    if (err) throw err;
+
+    var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger;
+
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+    });
+  });
 
   testTable[toHanger].splice(testTable[toHanger].indexOf(newTail),1);
 
@@ -133,30 +193,28 @@ app.post('/auditData', (req, res) =>{
 
   //retrive data
   var selectHanger = newData[0];
-  var newHanger = newData[1];
+  var addList = newData[1];
+  var removeList = newData[2];
 
-  //overwrite temp table
-  testTable[selectHanger] = newHanger;
-
-  //sort alphabeticly
+  //TODO perform functions on hanger
 
   console.log("Server Table Updated - " + getTime());
 
-  //debuggin!
+  /*debuggin!
   if (fullDebug){
     var printData = "";
     for (hanger of testTable){
 
-      printData += ("[");
+      printData += ("['");
 
       for (plane of hanger){
-        printData += (plane + ",");
+        printData += (plane + "','");
       }
 
-      printData += ("]\n")
+      printData += ("'],\n")
     }
     console.log(printData)
-  }
+  }*/
 
   //this is required to avoid hanging processes on client side
   res.send("POST request received");
