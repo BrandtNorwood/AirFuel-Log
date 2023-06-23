@@ -78,16 +78,16 @@ div.auditTable ul{
   text-align: center;
   border: 0.2vh solid var(--background);
   border-radius: 1vmin;
-  background-color: red;
+  background-color: #c50000;
   padding: 2vh;
 }
 
 div.auditTable ul.green{
-  background-color: green;
+  background-color: #00a51e;
 }
 
 div.auditTable ul.yellow{
-  background-color: orange;
+  background-color: #ff9900
 }
 
 div.auditTable ul.blue{
