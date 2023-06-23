@@ -22,7 +22,7 @@ function homeTable() {
         .then(function(data) {
 
             //seperate the table from the JSON object
-            tableData = data.testTable;
+            tableData = data.sqlTable
 
             //create the html objects for the table
             var table = document.createElement('table');
