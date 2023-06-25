@@ -137,7 +137,6 @@ app.put('/singleAdd',(req,res) =>{
   //adds aircraft to selected hanger in sql table
   con.connect(function(err) {
     if (err) throw err;
-    console.log("Connected!");
 
     var sql = "INSERT INTO aircraftmovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"')";
     
@@ -152,7 +151,7 @@ app.put('/singleAdd',(req,res) =>{
 
   //console output
   console.log(`Server compleated Add function - `+ getTime());
-  if(fullDebug){console.log("Server added " + newTail + " to hanger " + toHanger);}
+  if(fullDebug){console.log("\tServer added " + newTail + " to hanger " + toHanger);}
 });
 
 
@@ -181,7 +180,7 @@ app.delete('/singleRemove',(req,res) =>{
 
   //console output
   console.log(`Server compleated Remove function - `+ getTime());
-  if(fullDebug){console.log("Server removed " + newTail + " from hanger " + toHanger);}
+  if(fullDebug){console.log("\tServer removed " + newTail + " from hanger " + toHanger);}
 
 });
 
@@ -196,28 +195,97 @@ app.post('/auditData', (req, res) =>{
   var addList = newData[1];
   var removeList = newData[2];
 
-  //TODO perform functions on hanger
+  console.log("Server Table Updated (audit) - " + getTime());
 
-  console.log("Server Table Updated - " + getTime());
+  for (tail of addList){
+    if (fullDebug){console.log("\tAdded '" + tail + "' to hanger " + selectHanger);}
 
-  /*debuggin!
-  if (fullDebug){
-    var printData = "";
-    for (hanger of testTable){
+    //adds aircraft to selected hanger in sql table
+    con.connect(function(err) {
+      if (err) throw err;
 
-      printData += ("['");
+      var sql = "INSERT INTO aircraftmovements (tailnumber, hangerid, blockin) VALUES ('"+ tail +"', "+selectHanger+", '"+ getTime() +"')";
+      
+      con.query(sql, function (err, result) {
+        if (err) throw err;
+      });
+    });
 
-      for (plane of hanger){
-        printData += (plane + "','");
-      }
+    //prevents hanging processes
+    res.send("audit info received");
+  }
 
-      printData += ("'],\n")
-    }
-    console.log(printData)
-  }*/
+  for (tail of removeList){
+    if (fullDebug){console.log("\tRemoved '" + tail + "' from hanger " + selectHanger);}
+
+    con.connect(function(err) {
+      if (err) throw err;
+  
+      var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
+  
+      con.query(sql, function (err, result) {
+        if (err) throw err;
+      });
+    });
+  }
+
 
   //this is required to avoid hanging processes on client side
   res.send("POST request received");
+});
+
+
+//handle the search functionallity
+app.post('/search', (req, res) =>{
+  var timeSelect = req.body.timeSelect;
+  var tailNumber = req.body.tailInput;
+  var dateRange = "";
+
+  if(timeSelect == 1){//Week
+    const now = new Date();
+    now.setDate(now.getDate() - 7);
+    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
+  }
+  if(timeSelect == 2){//Month
+    const now = new Date();
+    now.setMonth(now.getMonth() - 1);
+    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
+  }
+  if(timeSelect == 3){//3 Month
+    const now = new Date();
+    now.setMonth(now.getMonth() - 3);
+    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
+  }
+  if(timeSelect == 4){//6 Month
+    const now = new Date();
+    now.setMonth(now.getMonth() - 6);
+    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
+  }
+  if(timeSelect == 5){//Year
+    const now = new Date();
+    now.setFullYear(now.getFullYear() - 1);
+    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
+  }
+
+  con.connect(function(err){
+    if (err) throw err;
+
+    var sql;
+
+    if (timeSelect == 6){
+      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = 'N115FJ'";
+    } else {
+      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = '"+ tailNumber +"' AND BlockIn > '"+ dateRange +"'";
+    }
+
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+
+      res.send({result});
+    });
+  });
+
+  console.log("Server asked for search results - " + getTime());
 });
 
 
