@@ -18,6 +18,7 @@
                     <li><a class = "active" href="history.html">History</a></li>
                     <li><a href="billingReport.html">Billable Report</a></li>
                     <li><img src="Logo_Airplane_Globe_Color.png"></img></li>
+                    <script src="JavaScript/history.js"></script>
                 </ul>
             </nav>
         </header>
@@ -25,24 +26,25 @@
         <div style="overflow-x:auto; padding: 1vh;"></div>
 
         <div>
-            <form>
+            <form onsubmit="return false;">
+                <a>Search entries from </a> 
                 <select name="hangerSelect" id="hangerSelect">
-                    <option value="Last Week" selected="selected">Last Week</option>
-                    <option value="Last Month">Last Month</option>
-                    <option value="Last 3 Months">Last 3 Months</option>
-                    <option value="Last 6 Months">Last 6 Months</option>
-                    <option value="Last Year">Last Year</option>
-                    <option value="Last All Time">All Time</option>
+                    <option value="1" selected="selected">Last Week</option>
+                    <option value="2">Last Month</option>
+                    <option value="3">Last 3 Months</option>
+                    <option value="4">Last 6 Months</option>
+                    <option value="5">Last Year</option>
+                    <option value="6">All Time</option>
                 </select>
 
-                <input type="text" placeholder="Tail Number...">
+                <a> for </a>
 
-                <input type="button" value="Search">
+                <input type="text" id = "tailInput" placeholder="Tail Number...">
+                <input type="button" value="Search" onclick="runSearch()">
+                <script>textBoxListener();</script>
             </form>
             
-            <div id="resultTable">
-            INOP
-            </div>
+            <div class="resultTable" id="resultTable"></div>
         
         </div>
     </body>
