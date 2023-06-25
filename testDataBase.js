@@ -20,44 +20,6 @@ var con = mysql.createConnection({
 
 var fullDebug = true;
 
-/*this better not be in prod
-Old table
-var testTable = [
-  ["N76NB", "N510AF"],
-  ["N446BY", "N988C", "N71TB", "N101BK"],
-  ["N602PM", "N113SW", "N6053S", "N706WL", "N701FJ", "N813KS", "N41XP", "N555DS", "N686PC"],
-  ["N700WK", "N303RR", "N525BB", "N524BB", "N773SW", "N604BB", "N6597", "N382CP"],
-  ["N791CD","N110CA", "N216N", "N810KS", "N89KT", "N115FJ", "N6342B", "N1231B", "N811KS", "N726KR", "N449BY", "N447BY", "N725LK", "N227PG", "N814KS", "N5226D", "N98MV", "N305KM"],
-  ["N701FC", "N232RJ", "N48LT", "N643RT", "N448BY", "N404CM", "N351LS", "N21DP"]
-];
-
-var testTable = [
-  ['N8858Z'],
-  ['N101BK','N446BY','N510AF','N555DS'],
-  ['N41XP','N529AB','N602FJ','N6053S','N701FJ','N773SW','N810KS','N811KS','N813KS','N814KS','N98MV'],
-  ['N113SW','N115FJ','N250AW','N303RR','N521BB','N604BB','N6342B','N700WK','N701FC','N706WL','N79SG','N817PA','N871RF'],
-  ['N1231B','N305KM','N382CP','N447BY','N449BY','N5226D','N5256S','N726KR','N770LE','N791CD'],
-  ['N110CA','N232RJ','N269LS','N351LS','N404CM','N448BY','N48LT','N524BB','N643RT','N686PC']
-];
-
-var testTable = [
-  ['N115FJ','N444AM','N6342B','N709EA','N895CA','N995KT'],
-  ['N101BK','N446BY','N5256S','N555DS','N83CC'],
-  ['N113SW','N41XP','N584ST','N602FJ','N6053S','N686PC','N701FJ','N79SG','N814KS','N98MV'],
-  ['N269LS','N303RR','N525BB','N550LG','N604BB','N643RT','N700WK','N701FC','N706WL','N810KS','N813KS','N871RF'],
-  ['N1231B','N1RF','N216N','N227PG','N305KM','N382CP','N447BY','N449BY','N521BB','N725LK','N726KR','N791CD','N811KS','N817PA'],
-  ['N110CA','N232RJ','N351LS','N404CM','N448BY','N48LT','N524BB','N189VT','N26QL','N510AF','N773SW']
-];*/
-
-var testTable = [
-  ['N521QS','N6342B'],
-  ['N101BK','N446BY','N5256S','N555DS','N83CC'],
-  ['N113SW','N115FJ','N41XP','N5226D','N602FJ','N6053S','N686PC','N701FJ','N79SG','N98MV'],
-  ['N303RR','N521BB','N525BB','N604BB','N700WK','N701FC','N706WL','N770LE','N810KS','N811KS','N813KS','N817PA','N871RF'],
-  ['N1231B','N216N','N227PG','N305KM','N382CP','N447BY','N449BY','N510AF','N550LG','N725LK','N726KR','N791CD','N895CA','N918SA'],
-  ['N110CA','N232RJ','N26QL','N351LS','N404CM','N448BY','N48LT','N524BB','N773SW','N643RT']
-];
-
 //get sql formatted datetime (used for debug too)
 function getTime(){
   const now = new Date(Date.now());
@@ -87,6 +49,7 @@ app.get("/toggleDebug", (req,res) => {
 
 
 // Handle GET hanger data request
+//Had chat GPT rewrite this to fix a bug with empty hangers
 app.get('/hangerData', (req, res) => {
   con.connect(function(err) {
     const query = "SELECT TailNumber, HangerID FROM aircraftmovements WHERE BlockOut IS NULL;";
@@ -107,11 +70,21 @@ app.get('/hangerData', (req, res) => {
         }
       }
 
-      var sqlTable = Object.values(tailNumbersByHanger);
+      var maxHangerID = Math.max(...Object.keys(tailNumbersByHanger));
+      var sqlTable = [];
+
+      // Build the 2D array
+      for (var j = 0; j <= maxHangerID; j++) {
+        if (tailNumbersByHanger[j]) {
+          sqlTable.push(tailNumbersByHanger[j]);
+        } else {
+          sqlTable.push([]);
+        }
+      }
 
       // Sort tail numbers within each hanger
-      for (var j = 0; j < sqlTable.length; j++) {
-        sqlTable[j].sort();
+      for (var k = 0; k < sqlTable.length; k++) {
+        sqlTable[k].sort();
       }
 
       // Create a JSON object
@@ -172,8 +145,6 @@ app.delete('/singleRemove',(req,res) =>{
       if (err) throw err;
     });
   });
-
-  testTable[toHanger].splice(testTable[toHanger].indexOf(newTail),1);
 
   //required to avoid hanging client processes (maybe implement in the future)
   res.send("Remove request received");
