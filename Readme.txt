@@ -6,3 +6,6 @@ This is both Server/Client sides for a hanger log website I'm working on for my 
 
 TODO
 -Billables Printout
+
+-implement 'move' function on server
+--when an aircraft is blocked into a hanger make sure it is blocked out of others
