@@ -1,3 +1,7 @@
+h2{
+    font-size: medium;
+}
+
 /* Split the screen in half */
 .split {
     display: block;
