@@ -139,7 +139,8 @@ app.delete('/singleRemove',(req,res) =>{
   con.connect(function(err) {
     if (err) throw err;
 
-    var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger;
+    var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+      newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger;
 
     con.query(sql, function (err, result) {
       if (err) throw err;
@@ -181,9 +182,6 @@ app.post('/auditData', (req, res) =>{
         if (err) throw err;
       });
     });
-
-    //prevents hanging processes
-    res.send("audit info received");
   }
 
   for (tail of removeList){
@@ -192,7 +190,8 @@ app.post('/auditData', (req, res) =>{
     con.connect(function(err) {
       if (err) throw err;
   
-      var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
+      var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+        tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
   
       con.query(sql, function (err, result) {
         if (err) throw err;
@@ -201,8 +200,8 @@ app.post('/auditData', (req, res) =>{
   }
 
 
-  //this is required to avoid hanging processes on client side
-  res.send("POST request received");
+  //prevents hanging processes
+  res.send("audit info received");
 });
 
 
@@ -244,9 +243,11 @@ app.post('/search', (req, res) =>{
     var sql;
 
     if (timeSelect == 6){
-      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = 'N115FJ'";
+      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = '"+
+        tailNumber+"'"; //you wouldn't beleve the bug I found here
     } else {
-      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = '"+ tailNumber +"' AND BlockIn > '"+ dateRange +"'";
+      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = '"+
+        tailNumber +"' AND BlockIn > '"+ dateRange +"'";
     }
 
     con.query(sql, function (err, result) {
@@ -257,8 +258,69 @@ app.post('/search', (req, res) =>{
   });
 
   console.log("Server asked for search results - " + getTime());
+  if (fullDebug){console.log("Tail - '" + tailNumber + "' TimeZone - '"+timeSelect+"'")}
 });
 
+
+app.post('/billing', (req, res) =>{
+  var startDate = req.body.startDate;
+  var endDate = req.body.endDate;
+  var showTennents = req.body.showTennents;
+
+  con.connect(function(err){
+    if (err) throw err;
+
+    sql = "SELECT am1.TailNumber, am1.HangerID, am1.BlockIn, am1.BlockOut FROM aircraftmovements AS am1 WHERE"+
+    " am1.BlockOut > '"+ startDate +"' AND am1.BlockOut < '"+ endDate +"'AND NOT EXISTS (SELECT 1 FROM aircraftmovements AS"+
+    " am2 WHERE am2.TailNumber = am1.TailNumber AND am2.BlockIn > DATE_SUB(am1.BlockOut, INTERVAL 2 HOUR)AND"+
+    " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR))";
+
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+
+      console.log(result);
+    });
+  });
+
+
+
+
+
+  /* psudocode
+
+    for aircraft of leftAircraft
+      check if returned values have been blocked back in within an two hours of blockout time
+        if aircraft has blocked back in remove it from the list
+
+      //retrieve the history of the aircraft
+      while sql finds another entry
+        ask sql to find blockOut times within two hours of current oldest blockIn time
+          if another is returned add it to the history, set it as the oldest blockIn time, and loop again
+
+    return the results
+  */
+
+
+  //this is temporary because i needed to build the client side first
+  var results = [
+    [
+      {"TailNumber": "N115FJ","HangerID": 2,"BlockIn": "2023-06-23T02:33:48.000Z","BlockOut": "2023-06-24T06:04:01.000Z"},
+      {"TailNumber": "N115FJ","HangerID": 4,"BlockIn": "2023-06-24T06:09:01.000Z","BlockOut": "2023-06-25T08:34:33.000Z"},
+      {"TailNumber": "N115FJ","HangerID": 2,"BlockIn": "2023-06-25T07:00:32.000Z","BlockOut": "2023-06-27T08:59:44.000Z"},
+      {"TailNumber": "N115FJ", "HangerID": 4,"BlockIn": "2023-06-27T09:04:31.000Z","BlockOut": "2023-06-28T08:59:44.000Z"}
+    ],
+    [
+      {"TailNumber": "N1231B","HangerID": 0,"BlockIn": "2023-06-23T02:33:48.000Z","BlockOut": "2023-06-23T10:37:41.000Z"},
+      {"TailNumber": "N1231B","HangerID": 4,"BlockIn": "2023-06-23T10:38:19.000Z","BlockOut": "2023-06-23T10:52:15.000Z"},
+      {"TailNumber": "N1231B","HangerID": 0,"BlockIn": "2023-06-23T10:52:31.000Z","BlockOut": "2023-06-28T10:52:15.000Z"}
+    ]
+  ];
+
+  res.send({results});
+
+  console.log("Billing results requested - " + getTime());
+  if (fullDebug){console.log("\tStartDate="+startDate +" EndDate="+ endDate +" ShowTennents="+ showTennents);}
+});
 
 
 // Start the server
