@@ -29,27 +29,6 @@
 
             <div class = "split billingDisplay">
                 <div class="billingTable" id="billingTable">
-                    <a>Aircraft Hanger Billing Report - Wed 6/21/2023</a>
-                    <ol>
-                        <ul>
-                            N584ST - (6/2/2023 - 6/21/2023)<ol id="aircraftHistory">
-                                <li>Charlie	- (6/2/2023 - 6/4/2023) - 2 Nights</li>
-                                <li>Echo 	- (6/4/2023 - 6/12/2023) - 8 Nights</li>
-                                <li>Bravo	- (6/12/2023 - 6/19/2023) - 7 Nights</li>
-                                <li>Charlie	- (6/19/2023 - 6/21/2023) - 2 Nights</li>
-                            </ol>Total of 19 Nights - (19 In Hanger)
-                        </ul>
-
-                        <ul>
-                            N8858Z - (6/16/23 - 6/21/2023)<ol id="aircraftHistory">
-                                <li>Ramp	- (6/16/23 - 6/17/2023) - 1 Nights</li>
-                                <li>Delta	- (6/17/23 - 6/17/2023) - 1 Nights</li>
-                                <li>Ramp	- (6/17/23 - 6/19/2023) - 2 Nights</li>
-                                <li>Charlie	- (6/19/23 - 6/19/2023) - 1 Nights</li>
-                                <li> Ramp	- (6/19/23 - 6/21/2023) - 2 Nights</li>
-                            </ol>Total of 5 Nights - (2 In Hanger)
-                        </ul>
-                    </ol>
                 </div>  
             </div>
 
@@ -65,9 +44,11 @@
                 <form>
                     <input type="checkbox" id="showTennents" name="showTennents" value="tennents">
                     <label for="showTennents"> Show Base Tennents</label><br>
+                    <input type="checkbox" id="showTimes" name="showTimes" value="timeStamps">
+                    <label for="showTimes"> Show Time Stamps</label><br>
                 </form>
                 <form>
-                    <button type="button" onclick="generateBilling()">Submit</button>
+                    <button type="button" onclick="callResults()">Submit</button>
                 </form>
             </div>
         </main>
