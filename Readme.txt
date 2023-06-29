@@ -8,5 +8,8 @@ TODO
 -Billables Printout
 --Finish server Side
 
+-Search
+--Make more user Frendly by adding an "N" and making enter work
+
 -implement 'move' function on server
 --when an aircraft is blocked into a hanger make sure it is blocked out of others
