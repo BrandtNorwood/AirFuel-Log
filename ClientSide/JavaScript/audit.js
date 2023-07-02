@@ -60,6 +60,12 @@ function retreiveOG(){
         originalList = tableData[selectedHanger];
 
         buildTable();
+    })
+    .catch(function(err){
+        var outputFeild = document.getElementById("auditTable");
+
+        outputFeild.replaceChildren();
+        outputFeild.appendChild(document.createTextNode(err));
     });
 }
 
@@ -162,31 +168,35 @@ function buildTable(){
 
 //Sends the changes off to the NodeJS server
 function submitChanges(){
-    var hangerSelect = document.getElementById("hangerSelect");
+    if(submittedList.length != 0){ //low tech hanger wipe fix                                   Fix this
+        var hangerSelect = document.getElementById("hangerSelect");
 
-    //this spits out the arrays that are going to be passed to the server
-    var compareThingamajig = compareLists();
-        var addList = compareThingamajig.addList;
-        var removeList = compareThingamajig.removeList;
+        //this spits out the arrays that are going to be passed to the server
+        var compareThingamajig = compareLists();
+            var addList = compareThingamajig.addList;
+            var removeList = compareThingamajig.removeList;
 
-    var selectedHanger = 0;
+        var selectedHanger = 0;
 
-    for (var i=0; i < hangers.length; i++){
-        if (hangers[i] == hangerSelect.value){
-            selectedHanger = i;
+        for (var i=0; i < hangers.length; i++){
+            if (hangers[i] == hangerSelect.value){
+                selectedHanger = i;
+            }
         }
+
+        var sendData = [selectedHanger, addList,removeList];
+
+        console.log(sendData);
+
+        fetch(Url + "auditData", {
+            method: "POST", 
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify([selectedHanger,addList,removeList])
+        })
+        .then(() => {
+            clearChanges();
+        });
+    }else{
+        console.log("empty submition blocked");
     }
-
-    var sendData = [selectedHanger, addList,removeList];
-
-    console.log(sendData);
-
-    fetch(Url + "auditData", {
-        method: "POST", 
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify([selectedHanger,addList,removeList])
-    })
-    .then(() => {
-        clearChanges();
-    });
 }
