@@ -10,7 +10,7 @@ function textBoxListener(){
     var textBox = document.getElementById("tailInput");
 
     textBox.addEventListener("keydown", function(e){
-        if (e.code == "Enter"){addAuditList();}
+        if (e.code == "Enter"){runSearch();}
     });
 }
 
@@ -18,6 +18,7 @@ function textBoxListener(){
 function runSearch() {
     var timeSelect = document.getElementById("hangerSelect").value;
     var tailInput = document.getElementById("tailInput").value;
+    var tailTextBox = document.getElementById("tailInput")
     var table = document.getElementById("resultTable");
 
     fetch(Url + "search", {
@@ -31,6 +32,7 @@ function runSearch() {
     .then(function(data) {
         var results = data.result;
 
+
         table.replaceChildren();
 
         var tableResults = document.createElement('table');
@@ -38,7 +40,7 @@ function runSearch() {
         //This builds the labels at the top
         var labels = document.createElement('tr')
         for (label of topLabels){
-            var thisLabel = document.createElement('th');
+            var thisLabel = document.createElement('td');
             thisLabel.appendChild(document.createTextNode(label));
             labels.appendChild(thisLabel);
         }
@@ -54,9 +56,19 @@ function runSearch() {
             var HangerID = document.createElement('th');
                 HangerID.appendChild(document.createTextNode(hangers[entry.HangerID]));
             var BlockIn = document.createElement('th');
-                BlockIn.appendChild(document.createTextNode(entry.BlockIn));
+                var BlockInTimeElemet = new Date(entry.BlockIn);
+                BlockInTimeElemet.setHours(BlockInTimeElemet.getHours() - 5);
+                var options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Chicago' };
+                var formattedInDate = BlockInTimeElemet.toLocaleString('en-US', options);
+                BlockIn.appendChild(document.createTextNode(formattedInDate));
             var BlockOut = document.createElement('th');
-                BlockOut.appendChild(document.createTextNode(entry.BlockOut));
+                if(entry.BlockOut != null){
+                    var BlockOutTimeElemet = new Date(entry.BlockIn);
+                    BlockOutTimeElemet.setHours(BlockOutTimeElemet.getHours() - 5);
+                    var options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Chicago'};
+                    var formattedOutDate = BlockOutTimeElemet.toLocaleString('en-US', options);
+                    BlockOut.appendChild(document.createTextNode(formattedOutDate));
+                }
 
 
             entryDisplay.appendChild(TailNumber);
@@ -68,6 +80,8 @@ function runSearch() {
         }
 
         table.appendChild(tableResults);
+
+        tailTextBox.value = "N";
 
     })
     .catch(function(error) {
