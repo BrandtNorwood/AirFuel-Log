@@ -1,5 +1,5 @@
 //change these two as needed
-const Url = "http://localhost:3000/" //this will be the data base till i get my shit together
+const Url = "http://localhost:3000/" //this is the server root url (extensions will be added by other scripts)
 const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
 
 
@@ -160,8 +160,10 @@ function buildTable(){
         outputTable.appendChild(table);     
 
       })
-      .catch(function(error) {
-        // Handle any errors that occurred during the request
-        console.log(error)
-      });
+      .catch(function(err){
+        var outputFeild = document.getElementById("auditTable");
+
+        outputFeild.replaceChildren();
+        outputFeild.appendChild(document.createTextNode(err));
+    });
 }
