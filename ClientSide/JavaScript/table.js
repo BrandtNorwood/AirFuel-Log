@@ -73,8 +73,10 @@ function homeTable() {
             table.appendChild(tableBody);
             document.body.appendChild(table);
         })
-        .catch(function(error) {
-          // Handle any errors that occurred during the request
-          console.log(error)
+        .catch(function(err){
+        var outputFeild = document.getElementById("tableSlot");
+
+        outputFeild.replaceChildren();
+        outputFeild.appendChild(document.createTextNode(err));
         });
 }
