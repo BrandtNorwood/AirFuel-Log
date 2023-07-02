@@ -19,5 +19,27 @@ select{
 #resultTable{
     border: 0.2vh solid white; 
     padding: 1%; 
-    height: 75%;
+    height: 74%;
 }
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  td, th {
+    border: 0.2vh solid white; 
+    text-align: left;
+    padding: 8px;
+    font-weight: 100;
+  }
+
+  td{
+    background-color: var(--colorPop);
+    font-weight: bold;
+  }
+  
+  tr:nth-child(odd) {
+    background-color: var(--backPop);
+  }
