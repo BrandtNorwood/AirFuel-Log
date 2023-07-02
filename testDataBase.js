@@ -10,12 +10,28 @@ const express = require('express');
 var mysql = require('mysql2');
 const app = express();
 
-var con = mysql.createConnection({
+/*var con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "6ceyxhuv",
+  database: "FJCHangerLog",
+  insecureAuth: true 
+});*/
+
+var con = mysql.createPool({
+  connectionLimit:2,
   host: "localhost",
   user: "root",
   password: "6ceyxhuv",
   database: "FJCHangerLog",
   insecureAuth: true
+});
+
+con.getConnection((err,connection)=> {
+  if(err)
+  throw err;
+  console.log('Database connected successfully');
+  connection.release();
 });
 
 var fullDebug = true;
@@ -51,50 +67,48 @@ app.get("/toggleDebug", (req,res) => {
 // Handle GET hanger data request
 //Had chat GPT rewrite this to fix a bug with empty hangers
 app.get('/hangerData', (req, res) => {
-  con.connect(function(err) {
-    const query = "SELECT TailNumber, HangerID FROM aircraftmovements WHERE BlockOut IS NULL;";
-    con.query(query, function (err, result) {
-      if (err) throw err;
-      
-      var tailNumbersByHanger = {};
+  const query = "SELECT TailNumber, HangerID FROM AircraftMovements WHERE BlockOut IS NULL;";
+  con.query(query, function (err, result) {
+    if (err) throw err;
+    
+    var tailNumbersByHanger = {};
 
-      for (var i = 0; i < result.length; i++) {
-        var aircraft = result[i];
-        var tailNumber = aircraft.TailNumber;
-        var hangerID = aircraft.HangerID;
+    for (var i = 0; i < result.length; i++) {
+      var aircraft = result[i];
+      var tailNumber = aircraft.TailNumber;
+      var hangerID = aircraft.HangerID;
 
-        if (!tailNumbersByHanger[hangerID]) {
-          tailNumbersByHanger[hangerID] = [tailNumber];
-        } else {
-          tailNumbersByHanger[hangerID].push(tailNumber);
-        }
+      if (!tailNumbersByHanger[hangerID]) {
+        tailNumbersByHanger[hangerID] = [tailNumber];
+      } else {
+        tailNumbersByHanger[hangerID].push(tailNumber);
       }
+    }
 
-      var maxHangerID = Math.max(...Object.keys(tailNumbersByHanger));
-      var sqlTable = [];
+    var maxHangerID = Math.max(...Object.keys(tailNumbersByHanger));
+    var sqlTable = [];
 
-      // Build the 2D array
-      for (var j = 0; j <= maxHangerID; j++) {
-        if (tailNumbersByHanger[j]) {
-          sqlTable.push(tailNumbersByHanger[j]);
-        } else {
-          sqlTable.push([]);
-        }
+    // Build the 2D array
+    for (var j = 0; j <= maxHangerID; j++) {
+      if (tailNumbersByHanger[j]) {
+        sqlTable.push(tailNumbersByHanger[j]);
+      } else {
+        sqlTable.push([]);
       }
+    }
 
-      // Sort tail numbers within each hanger
-      for (var k = 0; k < sqlTable.length; k++) {
-        sqlTable[k].sort();
-      }
+    // Sort tail numbers within each hanger
+    for (var k = 0; k < sqlTable.length; k++) {
+      sqlTable[k].sort();
+    }
 
-      // Create a JSON object
-      const json = { sqlTable };
+    // Create a JSON object
+    const json = { sqlTable };
 
-      console.log(`Server Table Requested - ${getTime()}`);
+    console.log(`Server Table Requested - ${getTime()}`);
 
-      // Respond with the JSON object
-      res.json(json);
-    });
+    // Respond with the JSON object
+    res.json(json);
   });
 });
 
@@ -108,14 +122,18 @@ app.put('/singleAdd',(req,res) =>{
   var newTail = newData[1];
 
   //adds aircraft to selected hanger in sql table
-  con.connect(function(err) {
+  var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+    newTail +"' AND BlockOut IS NULL";
+
+  con.query(sql, function (err, result) {
     if (err) throw err;
 
-    var sql = "INSERT INTO aircraftmovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"')";
-    
+    var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"')";
+  
     con.query(sql, function (err, result) {
       if (err) throw err;
     });
+
   });
 
 
@@ -136,15 +154,11 @@ app.delete('/singleRemove',(req,res) =>{
   var toHanger = newData[0];
   var newTail = newData[1];
 
-  con.connect(function(err) {
+  var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+    newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger;
+
+  con.query(sql, function (err, result) {
     if (err) throw err;
-
-    var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-      newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger;
-
-    con.query(sql, function (err, result) {
-      if (err) throw err;
-    });
   });
 
   //required to avoid hanging client processes (maybe implement in the future)
@@ -173,11 +187,14 @@ app.post('/auditData', (req, res) =>{
     if (fullDebug){console.log("\tAdded '" + tail + "' to hanger " + selectHanger);}
 
     //adds aircraft to selected hanger in sql table
-    con.connect(function(err) {
+    var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+    tail +"' AND BlockOut IS NULL";
+
+    con.query(sql, function (err, result) {
       if (err) throw err;
 
-      var sql = "INSERT INTO aircraftmovements (tailnumber, hangerid, blockin) VALUES ('"+ tail +"', "+selectHanger+", '"+ getTime() +"')";
-      
+      var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ tail +"', "+selectHanger+", '"+ getTime() +"')";
+    
       con.query(sql, function (err, result) {
         if (err) throw err;
       });
@@ -186,16 +203,12 @@ app.post('/auditData', (req, res) =>{
 
   for (tail of removeList){
     if (fullDebug){console.log("\tRemoved '" + tail + "' from hanger " + selectHanger);}
+  
+    var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+      tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
 
-    con.connect(function(err) {
+    con.query(sql, function (err, result) {
       if (err) throw err;
-  
-      var sql = "UPDATE aircraftmovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-        tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
-  
-      con.query(sql, function (err, result) {
-        if (err) throw err;
-      });
     });
   }
 
@@ -236,29 +249,24 @@ app.post('/search', (req, res) =>{
     now.setFullYear(now.getFullYear() - 1);
     dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
   }
+  var sql;
 
-  con.connect(function(err){
+  if (timeSelect == 6){
+    sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM AircraftMovements WHERE TailNumber = '"+
+      tailNumber+"'"; //you wouldn't beleve the bug I found here
+  } else {
+    sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM AircraftMovements WHERE TailNumber = '"+
+      tailNumber +"' AND BlockIn > '"+ dateRange +"'";
+  }
+
+  con.query(sql, function (err, result) {
     if (err) throw err;
 
-    var sql;
-
-    if (timeSelect == 6){
-      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = '"+
-        tailNumber+"'"; //you wouldn't beleve the bug I found here
-    } else {
-      sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM aircraftmovements WHERE TailNumber = '"+
-        tailNumber +"' AND BlockIn > '"+ dateRange +"'";
-    }
-
-    con.query(sql, function (err, result) {
-      if (err) throw err;
-
-      res.send({result});
-    });
+    res.send({result});
   });
 
   console.log("Server asked for search results - " + getTime());
-  if (fullDebug){console.log("Tail - '" + tailNumber + "' TimeZone - '"+timeSelect+"'")}
+  if (fullDebug){console.log("\tTail - '" + tailNumber + "' TimeZone - '"+timeSelect+"'")}
 });
 
 
@@ -267,56 +275,26 @@ app.post('/billing', (req, res) =>{
   var endDate = req.body.endDate;
   var showTennents = req.body.showTennents;
 
-  con.connect(function(err){
+  sql = "SELECT am1.TailNumber, am1.HangerID, am1.BlockIn, am1.BlockOut FROM AircraftMovements AS am1 WHERE"+
+  " am1.BlockOut > '"+ startDate +"' AND am1.BlockOut < '"+ endDate +"'AND NOT EXISTS (SELECT 1 FROM AircraftMovements AS"+
+  " am2 WHERE am2.TailNumber = am1.TailNumber AND am2.BlockIn > DATE_SUB(am1.BlockOut, INTERVAL 2 HOUR)AND"+
+  " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR))";
+
+  con.query(sql, function (err, result) {
     if (err) throw err;
 
-    sql = "SELECT am1.TailNumber, am1.HangerID, am1.BlockIn, am1.BlockOut FROM aircraftmovements AS am1 WHERE"+
-    " am1.BlockOut > '"+ startDate +"' AND am1.BlockOut < '"+ endDate +"'AND NOT EXISTS (SELECT 1 FROM aircraftmovements AS"+
-    " am2 WHERE am2.TailNumber = am1.TailNumber AND am2.BlockIn > DATE_SUB(am1.BlockOut, INTERVAL 2 HOUR)AND"+
-    " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR))";
+    var returnArray = new Array();
+    for (entry of result){
+      var newArray = new Array();
+      newArray.push(entry);
 
-    con.query(sql, function (err, result) {
-      if (err) throw err;
-
-      console.log(result);
-    });
+      returnArray.push(newArray);
+    }
+    result = returnArray;
+    res.send({result});
   });
 
-
-
-
-
-  /* psudocode
-
-    for aircraft of leftAircraft
-      check if returned values have been blocked back in within an two hours of blockout time
-        if aircraft has blocked back in remove it from the list
-
-      //retrieve the history of the aircraft
-      while sql finds another entry
-        ask sql to find blockOut times within two hours of current oldest blockIn time
-          if another is returned add it to the history, set it as the oldest blockIn time, and loop again
-
-    return the results
-  */
-
-
-  //this is temporary because i needed to build the client side first
-  var results = [
-    [
-      {"TailNumber": "N115FJ","HangerID": 2,"BlockIn": "2023-06-23T02:33:48.000Z","BlockOut": "2023-06-24T06:04:01.000Z"},
-      {"TailNumber": "N115FJ","HangerID": 4,"BlockIn": "2023-06-24T06:09:01.000Z","BlockOut": "2023-06-25T08:34:33.000Z"},
-      {"TailNumber": "N115FJ","HangerID": 2,"BlockIn": "2023-06-25T07:00:32.000Z","BlockOut": "2023-06-27T08:59:44.000Z"},
-      {"TailNumber": "N115FJ", "HangerID": 4,"BlockIn": "2023-06-27T09:04:31.000Z","BlockOut": "2023-06-28T08:59:44.000Z"}
-    ],
-    [
-      {"TailNumber": "N1231B","HangerID": 0,"BlockIn": "2023-06-23T02:33:48.000Z","BlockOut": "2023-06-23T10:37:41.000Z"},
-      {"TailNumber": "N1231B","HangerID": 4,"BlockIn": "2023-06-23T10:38:19.000Z","BlockOut": "2023-06-23T10:52:15.000Z"},
-      {"TailNumber": "N1231B","HangerID": 0,"BlockIn": "2023-06-23T10:52:31.000Z","BlockOut": "2023-06-28T10:52:15.000Z"}
-    ]
-  ];
-
-  res.send({results});
+//Still need to populate the full history of the aircraft here
 
   console.log("Billing results requested - " + getTime());
   if (fullDebug){console.log("\tStartDate="+startDate +" EndDate="+ endDate +" ShowTennents="+ showTennents);}
