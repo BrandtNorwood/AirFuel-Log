@@ -6,10 +6,8 @@ This is both Server/Client sides for a hanger log website I'm working on for my 
 
 TODO
 -Billables Printout
---Finish server Side
+--implement historical parts
 
--Search
---Make more user Frendly by adding an "N" and making enter work
+-Investigate and Fix MultiAdd issue
 
--implement 'move' function on server
---when an aircraft is blocked into a hanger make sure it is blocked out of others
+-Add Authentication System
