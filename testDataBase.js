@@ -28,8 +28,7 @@ var con = mysql.createPool({
 });
 
 con.getConnection((err,connection)=> {
-  if(err)
-  throw err;
+  if(err){console.log("Database connection failed!"); throw err;}
   console.log('Database connected successfully');
   connection.release();
 });
@@ -177,39 +176,44 @@ app.post('/auditData', (req, res) =>{
   var newData = req.body;
 
   //retrive data
-  var selectHanger = newData[0];
-  var addList = newData[1];
-  var removeList = newData[2];
+  var selectHanger = newData.selectedHanger;
+  var addList = newData.addList;
+  var removeList = newData.removeList;
+  var confirmationData = newData.confirmKey;
 
   console.log("Server Table Updated (audit) - " + getTime());
 
-  for (tail of addList){
-    if (fullDebug){console.log("\tAdded '" + tail + "' to hanger " + selectHanger);}
+  if (confirmationData = ["821393","3162010","2272358"]){
+    for (tail of addList){
+      if (fullDebug){console.log("\tAdded '" + tail + "' to hanger " + selectHanger);}
 
-    //adds aircraft to selected hanger in sql table
-    var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-    tail +"' AND BlockOut IS NULL";
+      //adds aircraft to selected hanger in sql table
+      var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+      tail +"' AND BlockOut IS NULL";
 
-    con.query(sql, function (err, result) {
-      if (err) throw err;
+      con.query(sql, function (err, result) {
+        if (err) throw err;
 
-      var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ tail +"', "+selectHanger+", '"+ getTime() +"')";
+        var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ tail +"', "+selectHanger+", '"+ getTime() +"')";
+      
+        con.query(sql, function (err, result) {
+          if (err) throw err;
+        });
+      });
+    }
+
+    for (tail of removeList){
+      if (fullDebug){console.log("\tRemoved '" + tail + "' from hanger " + selectHanger);}
     
+      var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
+        tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
+
       con.query(sql, function (err, result) {
         if (err) throw err;
       });
-    });
-  }
-
-  for (tail of removeList){
-    if (fullDebug){console.log("\tRemoved '" + tail + "' from hanger " + selectHanger);}
-  
-    var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-      tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
-
-    con.query(sql, function (err, result) {
-      if (err) throw err;
-    });
+    }
+  }else {
+    console.log("bad Audit data received!");
   }
 
 
