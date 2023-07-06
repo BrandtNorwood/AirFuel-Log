@@ -2,7 +2,6 @@
 const Url = "http://localhost:3000/" //this is the server root url (extensions will be added by other scripts)
 const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
 
-
 //This is for detecting the enter key and handling it properly
 function textBoxListener(){
     var textBox = document.getElementById("tailInput");
@@ -184,19 +183,18 @@ function submitChanges(){
             }
         }
 
-        var sendData = [selectedHanger, addList,removeList];
-
-        console.log(sendData);
+        var confirmKey = ["821393","3162010","2272358"];
 
         fetch(Url + "auditData", {
             method: "POST", 
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify([selectedHanger,addList,removeList])
+            body: JSON.stringify({selectedHanger,addList,removeList,confirmKey})
         })
         .then(() => {
             clearChanges();
         });
     }else{
         console.log("empty submition blocked");
+        document.getElementById("errorPlate").appendChild(document.createTextNode("Cannot submit without changes! \n"));
     }
 }
