@@ -28,12 +28,13 @@ var con = mysql.createPool({
 });
 
 con.getConnection((err,connection)=> {
-  if(err){console.log("Database connection failed!"); throw err;}
-  console.log('Database connected successfully');
+  if(err){consoleLog("Database connection failed!"); throw err;}
+  consoleLog('Database connected successfully');
   connection.release();
 });
 
 var fullDebug = true;
+var consoleList = new Array();
 
 //get sql formatted datetime (used for debug too)
 function getTime(){
@@ -41,6 +42,16 @@ function getTime(){
   const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
 
   return formattedDateTime;
+}
+
+//keeps an array for the remote debug console
+function consoleLog(output){
+  console.log(output);
+
+  if (consoleList.length > 100){
+    consoleList.splice(0);
+  }
+  consoleList.push(output);
 }
 
 //slay the god forsaken CORS dragon
@@ -52,18 +63,30 @@ app.use((req, res, next) => {
   next();
 });
 
-//this one is for troubleshooting. Just contact the server in the browser and see if its up
-app.get("/", (req,res) => {res.json("Im Awake! - " + getTime()); console.log("Contacted in browser - "+ getTime());});
+//this one is for troubleshooting. Just contact the server in the browser on port 3000
+app.get("/", (req,res) => {
+  //consoleLog("Contacted in browser - "+ getTime());       Don't think i need this for now
+
+  //takes the consoleLog array and makes it into a displatable format
+  var output = ["Hanger Log Server<br>----------  Im Awake! - " + getTime() + "  ----------"];
+  for (entry of consoleList){
+    output.push("\n" + entry.replace('\t','&emsp;'));
+  }
+  var outputString = output.join('<br>');
+
+  res.send(outputString);
+});
 app.use(express.json());
 
+//toggles the debug feature if you go to - host:3000/toggleDebug
 app.get("/toggleDebug", (req,res) => {
   fullDebug = !fullDebug;
   res.json("Toggled Debug to " + fullDebug)
-  console.log("Debug toggled to - " + fullDebug + " - " + getTime());
+  consoleLog("Debug toggled to - " + fullDebug + " - " + getTime());
 })
 
 
-// Handle GET hanger data request
+//Handle GET hanger data request
 //Had chat GPT rewrite this to fix a bug with empty hangers
 app.get('/hangerData', (req, res) => {
   const query = "SELECT TailNumber, HangerID FROM AircraftMovements WHERE BlockOut IS NULL;";
@@ -104,7 +127,7 @@ app.get('/hangerData', (req, res) => {
     // Create a JSON object
     const json = { sqlTable };
 
-    console.log(`Server Table Requested - ${getTime()}`);
+    consoleLog(`Server Table Requested - ${getTime()}`);
 
     // Respond with the JSON object
     res.json(json);
@@ -140,8 +163,8 @@ app.put('/singleAdd',(req,res) =>{
   res.send("Put request received");
 
   //console output
-  console.log(`Server compleated Add function - `+ getTime());
-  if(fullDebug){console.log("\tServer added " + newTail + " to hanger " + toHanger);}
+  consoleLog(`Server compleated Add function - `+ getTime());
+  if(fullDebug){consoleLog("\t-Server added " + newTail + " to hanger " + toHanger);}
 });
 
 
@@ -164,8 +187,8 @@ app.delete('/singleRemove',(req,res) =>{
   res.send("Remove request received");
 
   //console output
-  console.log(`Server compleated Remove function - `+ getTime());
-  if(fullDebug){console.log("\tServer removed " + newTail + " from hanger " + toHanger);}
+  consoleLog(`Server compleated Remove function - `+ getTime());
+  if(fullDebug){consoleLog("\t-Server removed " + newTail + " from hanger " + toHanger);}
 
 });
 
@@ -181,7 +204,7 @@ app.post('/auditData', (req, res) =>{
   var removeList = newData.removeList;
   var confirmationData = newData.confirmKey;
 
-  console.log("Server Table Updated (audit) - " + getTime());
+  consoleLog("Server Table Updated (audit) - " + getTime());
 
   if (JSON.stringify(confirmationData) === JSON.stringify(["821393","3162010","2272358"])){
 
@@ -215,7 +238,7 @@ app.post('/auditData', (req, res) =>{
 
           if(fullDebug){    //some console stuff
             for (tail of addList){
-              console.log("\tAdded " + tail + " to Hanger " + selectHanger);
+              consoleLog("\tAdded " + tail + " to Hanger " + selectHanger);
             }
           }
           if (Removesql != null){   //remove query
@@ -224,7 +247,7 @@ app.post('/auditData', (req, res) =>{
 
               if(fullDebug){    //some console stuff
                 for (tail of removeList){
-                  console.log("\tRemoved " + tail + " from Hanger " + selectHanger);
+                  consoleLog("\t-Removed " + tail + " from Hanger " + selectHanger);
                 }
               }
             })
@@ -237,13 +260,13 @@ app.post('/auditData', (req, res) =>{
 
         if(fullDebug){    //some console stuff
           for (tail of removeList){
-            console.log("\tRemoved " + tail + " from Hanger " + selectHanger);
+            consoleLog("\t-Removed " + tail + " from Hanger " + selectHanger);
           }
         }
       });
     }
   }else {
-    console.log("bad Audit data received!");
+    consoleLog("bad Audit data received!");
   }
 
 
@@ -299,44 +322,66 @@ app.post('/search', (req, res) =>{
     res.send({result});
   });
 
-  console.log("Server asked for search results - " + getTime());
-  if (fullDebug){console.log("\tTail - '" + tailNumber + "' TimeZone - '"+timeSelect+"'")}
+  consoleLog("Server asked for search results - " + getTime());
+  if (fullDebug){consoleLog("\tTail - '" + tailNumber + "' TimeZone - '"+timeSelect+"'")}
 });
 
+function queryHistory(entry) {
+  return new Promise((resolve, reject) => {
+    var newArray = new Array();
 
-app.post('/billing', (req, res) =>{
+    const now = new Date();
+    now.setMonth(now.getMonth() - 1);
+    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
+    sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM AircraftMovements WHERE TailNumber = '" +
+      entry.TailNumber + "' AND BlockIn > '" + dateRange + "'";
+
+    con.query(sql, function (err, results) {
+      if (err) {
+        reject(err);
+      } else {
+        for (result of results) {
+          newArray.push(result);
+        }
+        resolve(newArray);
+      }
+    });
+  });
+}
+
+app.post('/billing', (req, res) => {
   var startDate = req.body.startDate;
   var endDate = req.body.endDate;
   var showTennents = req.body.showTennents;
 
-  sql = "SELECT am1.TailNumber, am1.HangerID, am1.BlockIn, am1.BlockOut FROM AircraftMovements AS am1 WHERE"+
-  " am1.BlockOut > '"+ startDate +"' AND am1.BlockOut < '"+ endDate +"'AND NOT EXISTS (SELECT 1 FROM AircraftMovements AS"+
-  " am2 WHERE am2.TailNumber = am1.TailNumber AND am2.BlockIn > DATE_SUB(am1.BlockOut, INTERVAL 2 HOUR)AND"+
-  " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR))";
+  sql = "SELECT am1.TailNumber, am1.HangerID, am1.BlockIn, am1.BlockOut FROM AircraftMovements AS am1 WHERE" +
+    " am1.BlockOut > '" + startDate + "' AND am1.BlockOut < '" + endDate + "'AND NOT EXISTS (SELECT 1 FROM AircraftMovements AS" +
+    " am2 WHERE am2.TailNumber = am1.TailNumber AND am2.BlockIn > DATE_SUB(am1.BlockOut, INTERVAL 2 HOUR)AND" +
+    " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR))";
 
   con.query(sql, function (err, result) {
     if (err) throw err;
 
-    var returnArray = new Array();
-    for (entry of result){
-      var newArray = new Array();
-      newArray.push(entry);
+    var promises = result.map(entry => queryHistory(entry));
 
-      returnArray.push(newArray);
-    }
-    result = returnArray;
-    res.send({result});
+    Promise.all(promises)
+      .then(returnedResults => {
+        res.send({ result: returnedResults });
+      })
+      .catch(err => {
+        // Handle any error that occurred during the queries
+        console.error(err);
+        res.status(500).send('An error occurred');
+      });
   });
 
-//Still need to populate the full history of the aircraft here
-
-  console.log("Billing results requested - " + getTime());
-  if (fullDebug){console.log("\tStartDate="+startDate +" EndDate="+ endDate +" ShowTennents="+ showTennents);}
+  consoleLog("Billing results requested - " + getTime());
+  if (fullDebug) { consoleLog("\tStartDate=" + startDate + " EndDate=" + endDate + " ShowTennents=" + showTennents); }
 });
 
 
 // Start the server
 const port = 3000; //dont ask why just fix it
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  consoleLog(`Server is running on port ${port}`);
 });
