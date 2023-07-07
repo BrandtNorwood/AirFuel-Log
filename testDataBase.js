@@ -183,33 +183,63 @@ app.post('/auditData', (req, res) =>{
 
   console.log("Server Table Updated (audit) - " + getTime());
 
-  if (confirmationData = ["821393","3162010","2272358"]){
-    for (tail of addList){
-      if (fullDebug){console.log("\tAdded '" + tail + "' to hanger " + selectHanger);}
+  if (JSON.stringify(confirmationData) === JSON.stringify(["821393","3162010","2272358"])){
 
-      //adds aircraft to selected hanger in sql table
-      var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-      tail +"' AND BlockOut IS NULL";
+    //builds the sql query for removing aircraft from other hangers that are being added to this one
+    if (addList.length > 0){
+      var Updatesql = "UPDATE AircraftMovements SET BlockOut = '" + getTime() + "' WHERE ";
+      var tailClauses = addList.map(tail => "TailNumber = '" + tail + "'");
+      Updatesql += tailClauses.join(" OR ");
+      Updatesql += " AND BlockOut IS NULL";
 
-      con.query(sql, function (err, result) {
-        if (err) throw err;
-
-        var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ tail +"', "+selectHanger+", '"+ getTime() +"')";
-      
-        con.query(sql, function (err, result) {
-          if (err) throw err;
-        });
-      });
+      //builds sql query for adding aircraft
+      var Insertsql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ";
+      tailClauses = addList.map(tail => "('"+ tail + "', " + selectHanger + ", '" + getTime() + "')");
+      Insertsql += tailClauses.join(" , ");
     }
 
-    for (tail of removeList){
-      if (fullDebug){console.log("\tRemoved '" + tail + "' from hanger " + selectHanger);}
-    
-      var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-        tail +"' AND BlockOut IS NULL AND HangerID = " + selectHanger;
+    if (removeList.length > 0){
+      //builds sql query for removing aircraft
+      var Removesql = "UPDATE AircraftMovements SET BlockOut = '" + getTime() + "' WHERE ";
+      tailClauses = removeList.map(tail => "TailNumber = '" + tail + "'");
+      Removesql += tailClauses.join(" OR ");
+      Removesql += " AND BlockOut IS NULL";
+    }
 
-      con.query(sql, function (err, result) {
+    //does the actual query
+    if (Updatesql != null && Insertsql != null){
+      con.query(Updatesql, function (err) {
         if (err) throw err;
+        con.query(Insertsql, function(err){
+          if (err) throw err;
+
+          if(fullDebug){    //some console stuff
+            for (tail of addList){
+              console.log("\tAdded " + tail + " to Hanger " + selectHanger);
+            }
+          }
+          if (Removesql != null){   //remove query
+            con.query(Removesql, function(err){
+              if (err) throw err;
+
+              if(fullDebug){    //some console stuff
+                for (tail of removeList){
+                  console.log("\tRemoved " + tail + " from Hanger " + selectHanger);
+                }
+              }
+            })
+          }
+        })
+      });
+    } else if (Removesql != null){  //remove query if add list is empty
+      con.query(Removesql, function(err){
+        if (err) throw err;
+
+        if(fullDebug){    //some console stuff
+          for (tail of removeList){
+            console.log("\tRemoved " + tail + " from Hanger " + selectHanger);
+          }
+        }
       });
     }
   }else {
