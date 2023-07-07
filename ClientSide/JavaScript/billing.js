@@ -39,11 +39,13 @@ function getTime(){
 function formatTime(time){
     var showTimes = document.getElementById("showTimes").checked;
 
-    if (showTimes){
-        return time.slice(0, 19).replace('T', ' ');
-    } else{
-        return time.slice(0, 10).replace('T', ' ')
-    }
+    if (time != null){
+        if (showTimes){
+            return time.slice(0, 19).replace('T', ' ');
+        } else{
+            return time.slice(0, 10).replace('T', ' ')
+        }
+    }else {return "An Error Has Occurred";}
 }
 
 function timeMath(startDate , endDate){
