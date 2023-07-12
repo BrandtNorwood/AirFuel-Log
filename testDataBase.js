@@ -10,28 +10,34 @@ const express = require('express');
 var mysql = require('mysql2');
 const app = express();
 
-/*var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "6ceyxhuv",
-  database: "FJCHangerLog",
-  insecureAuth: true 
-});*/
-
 var con = mysql.createPool({
   connectionLimit:2,
   host: "localhost",
-  user: "root",
+  user : "hangerLogServer",
   password: "6ceyxhuv",
   database: "FJCHangerLog",
   insecureAuth: true
 });
 
-con.getConnection((err,connection)=> {
-  if(err){consoleLog("Database connection failed!"); throw err;}
-  consoleLog('Database connected successfully');
-  connection.release();
-});
+let retryCount = 0;
+function establishConnection() {
+  con.getConnection((err, connection) => {
+    if (err) {
+      if (retryCount < 100) {
+        retryCount++;
+        console.log(`Database connection failed! Retrying in 5 seconds... (Attempt ${retryCount})`);
+        setTimeout(establishConnection, 5000); // Retry after 5 seconds
+      } else {
+        console.log(`Maximum retry count reached! Unable to establish database connection. Please Relaunch this Program when SQL Server issue has been resolved`);
+      }
+      return;
+    }
+    console.log('Database connected successfully');
+    connection.release();
+  });
+}
+
+establishConnection();
 
 var fullDebug = true;
 var consoleList = new Array();
@@ -48,7 +54,7 @@ function getTime(){
 function consoleLog(output){
   console.log(output);
 
-  if (consoleList.length > 100){
+  if (consoleList.length > 300){
     consoleList.splice(0);
   }
   consoleList.push(output);
@@ -91,7 +97,9 @@ app.get("/toggleDebug", (req,res) => {
 app.get('/hangerData', (req, res) => {
   const query = "SELECT TailNumber, HangerID FROM AircraftMovements WHERE BlockOut IS NULL;";
   con.query(query, function (err, result) {
-    if (err) throw err;
+    if (err){res.status(500).send('An Internal Database Error Occurred'); 
+      consoleLog("Internal SQL Error (Check SQL Server)! (HangerData) - "+getTime()); return;
+    }
     
     var tailNumbersByHanger = {};
 
@@ -148,12 +156,14 @@ app.put('/singleAdd',(req,res) =>{
     newTail +"' AND BlockOut IS NULL";
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL');
+      consoleLog("Internal SQL Error (Check SQL Server)! (Add) - "+getTime()); return;}
 
     var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"')";
   
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err){res.status(500).send('An Internal Database Error Occurred While Inserting SQL');
+        consoleLog("Internal SQL Error (Check SQL Server)! (Add) - "+getTime()); return;}
     });
 
   });
@@ -164,7 +174,7 @@ app.put('/singleAdd',(req,res) =>{
 
   //console output
   consoleLog(`Server compleated Add function - `+ getTime());
-  if(fullDebug){consoleLog("\t-Server added " + newTail + " to hanger " + toHanger);}
+  if(fullDebug){consoleLog("\t+Added " + newTail + " to hanger " + toHanger);}
 });
 
 
@@ -180,7 +190,8 @@ app.delete('/singleRemove',(req,res) =>{
     newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger;
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
+      consoleLog("Internal SQL Error (Check SQL Server)! (Remove) - "+getTime()); return;}
   });
 
   //required to avoid hanging client processes (maybe implement in the future)
@@ -188,7 +199,7 @@ app.delete('/singleRemove',(req,res) =>{
 
   //console output
   consoleLog(`Server compleated Remove function - `+ getTime());
-  if(fullDebug){consoleLog("\t-Server removed " + newTail + " from hanger " + toHanger);}
+  if(fullDebug){consoleLog("\t-Removed " + newTail + " from hanger " + toHanger);}
 
 });
 
@@ -206,6 +217,7 @@ app.post('/auditData', (req, res) =>{
 
   consoleLog("Server Table Updated (audit) - " + getTime());
 
+  //Basiclly just a check digit (for some fun google these numbers ;)
   if (JSON.stringify(confirmationData) === JSON.stringify(["821393","3162010","2272358"])){
 
     //builds the sql query for removing aircraft from other hangers that are being added to this one
@@ -232,13 +244,17 @@ app.post('/auditData', (req, res) =>{
     //does the actual query
     if (Updatesql != null && Insertsql != null){
       con.query(Updatesql, function (err) {
-        if (err) throw err;
+        if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
+          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime()); return;
+        }
         con.query(Insertsql, function(err){
-          if (err) throw err;
+          if (err){res.status(500).send('An Internal Database Error Occurred While Inserting SQL'); 
+            consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime()); return;
+          }
 
           if(fullDebug){    //some console stuff
             for (tail of addList){
-              consoleLog("\tAdded " + tail + " to Hanger " + selectHanger);
+              consoleLog("\t+Added " + tail + " to Hanger " + selectHanger);
             }
           }
           if (Removesql != null){   //remove query
@@ -256,7 +272,9 @@ app.post('/auditData', (req, res) =>{
       });
     } else if (Removesql != null){  //remove query if add list is empty
       con.query(Removesql, function(err){
-        if (err) throw err;
+        if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
+          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime()); return;
+        }
 
         if(fullDebug){    //some console stuff
           for (tail of removeList){
@@ -266,7 +284,8 @@ app.post('/auditData', (req, res) =>{
       });
     }
   }else {
-    consoleLog("bad Audit data received!");
+    consoleLog("Corrupted Audit data received!");
+    res.status(400);
   }
 
 
@@ -317,7 +336,9 @@ app.post('/search', (req, res) =>{
   }
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err){res.status(500).send('An Internal Database Error Occurred'); 
+      consoleLog("Internal SQL Error (Check SQL Server)! (Search) - "+getTime()); return;
+    }
 
     res.send({result});
   });
@@ -360,7 +381,9 @@ app.post('/billing', (req, res) => {
     " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR))";
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err){res.status(500).send('An Internal Database Error Occurred'); 
+      consoleLog("Internal SQL Error (Check SQL Server)! (BillingReport) - "+getTime()) ;return;
+    }
 
     var promises = result.map(entry => queryHistory(entry));
 
@@ -371,7 +394,6 @@ app.post('/billing', (req, res) => {
       .catch(err => {
         // Handle any error that occurred during the queries
         console.error(err);
-        res.status(500).send('An error occurred');
       });
   });
 
@@ -383,5 +405,5 @@ app.post('/billing', (req, res) => {
 // Start the server
 const port = 3000; //dont ask why just fix it
 app.listen(port, () => {
-  consoleLog(`Server is running on port ${port}`);
+  consoleLog(`Server is running on port ${port} - ` + getTime());
 });
