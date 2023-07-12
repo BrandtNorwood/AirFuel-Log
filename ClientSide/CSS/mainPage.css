@@ -30,3 +30,11 @@ table{
     .topnav { display: none !important; } 
     table th{ padding: 0.5%; }
 }
+
+@media screen and (max-width: 700px) {
+  table th{
+    padding: 4vh;
+    padding-top: 2vh;
+    padding-bottom: 2vh;
+  }
+}
