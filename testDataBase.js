@@ -19,20 +19,23 @@ var con = mysql.createPool({
   insecureAuth: true
 });
 
+let errorState = false;
 let retryCount = 0;
 function establishConnection() {
   con.getConnection((err, connection) => {
     if (err) {
       if (retryCount < 100) {
+        errorState = false;
         retryCount++;
-        console.log(`Database connection failed! Retrying in 5 seconds... (Attempt ${retryCount})`);
+        consoleLog(`(Attempt ${retryCount}) Database connection failed! Retrying in 5 seconds - ` + getTime());
         setTimeout(establishConnection, 5000); // Retry after 5 seconds
       } else {
         console.log(`Maximum retry count reached! Unable to establish database connection. Please Relaunch this Program when SQL Server issue has been resolved`);
       }
       return;
     }
-    console.log('Database connected successfully');
+    errorState = true;
+    consoleLog('Database connected successfully - ' + getTime());
     connection.release();
   });
 }
@@ -74,7 +77,9 @@ app.get("/", (req,res) => {
   //consoleLog("Contacted in browser - "+ getTime());       Don't think i need this for now
 
   //takes the consoleLog array and makes it into a displatable format
-  var output = ["Hanger Log Server<br>----------  Im Awake! - " + getTime() + "  ----------"];
+  var output = ["Hanger Log Server<br>"];
+    if (errorState){output[0] += "----------  Im Awake! - " + getTime() + "  ----------";}
+    else {output[0] += "!---------  ERROR STATE! - " + getTime() + "  ---------!";}
   for (entry of consoleList){
     output.push("\n" + entry.replace('\t','&emsp;'));
   }
@@ -98,8 +103,12 @@ app.get('/hangerData', (req, res) => {
   const query = "SELECT TailNumber, HangerID FROM AircraftMovements WHERE BlockOut IS NULL;";
   con.query(query, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred'); 
-      consoleLog("Internal SQL Error (Check SQL Server)! (HangerData) - "+getTime()); return;
+      consoleLog("Internal SQL Error (Check SQL Server)! (HangerData) - "+getTime()); 
+      errorState = false;
+      return;
     }
+
+    errorState = true;
     
     var tailNumbersByHanger = {};
 
@@ -157,13 +166,19 @@ app.put('/singleAdd',(req,res) =>{
 
   con.query(sql, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL');
-      consoleLog("Internal SQL Error (Check SQL Server)! (Add) - "+getTime()); return;}
+      consoleLog("Internal SQL Error (Check SQL Server)! (Add) - "+getTime());
+      errorState = false;
+      return;
+    }
 
     var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"')";
   
     con.query(sql, function (err, result) {
       if (err){res.status(500).send('An Internal Database Error Occurred While Inserting SQL');
-        consoleLog("Internal SQL Error (Check SQL Server)! (Add) - "+getTime()); return;}
+        consoleLog("Internal SQL Error (Check SQL Server)! (Add) - "+getTime());
+        errorState = false;
+        return;
+      }
     });
 
   });
@@ -191,7 +206,10 @@ app.delete('/singleRemove',(req,res) =>{
 
   con.query(sql, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
-      consoleLog("Internal SQL Error (Check SQL Server)! (Remove) - "+getTime()); return;}
+      consoleLog("Internal SQL Error (Check SQL Server)! (Remove) - "+getTime());
+      errorState = false;
+      return;
+    }
   });
 
   //required to avoid hanging client processes (maybe implement in the future)
@@ -245,11 +263,15 @@ app.post('/auditData', (req, res) =>{
     if (Updatesql != null && Insertsql != null){
       con.query(Updatesql, function (err) {
         if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
-          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime()); return;
+          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
+          errorState = false;
+          return;
         }
         con.query(Insertsql, function(err){
           if (err){res.status(500).send('An Internal Database Error Occurred While Inserting SQL'); 
-            consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime()); return;
+            consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
+            errorState = false;
+            return;
           }
 
           if(fullDebug){    //some console stuff
@@ -259,7 +281,11 @@ app.post('/auditData', (req, res) =>{
           }
           if (Removesql != null){   //remove query
             con.query(Removesql, function(err){
-              if (err) throw err;
+              if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
+                consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
+                errorState = false;
+                return;
+              }
 
               if(fullDebug){    //some console stuff
                 for (tail of removeList){
@@ -273,7 +299,9 @@ app.post('/auditData', (req, res) =>{
     } else if (Removesql != null){  //remove query if add list is empty
       con.query(Removesql, function(err){
         if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
-          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime()); return;
+          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
+          errorState = false;
+          return;
         }
 
         if(fullDebug){    //some console stuff
@@ -337,8 +365,11 @@ app.post('/search', (req, res) =>{
 
   con.query(sql, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred'); 
-      consoleLog("Internal SQL Error (Check SQL Server)! (Search) - "+getTime()); return;
+      consoleLog("Internal SQL Error (Check SQL Server)! (Search) - "+getTime());
+      errorState = false;
+      return;
     }
+    errorState = true;
 
     res.send({result});
   });
@@ -382,8 +413,12 @@ app.post('/billing', (req, res) => {
 
   con.query(sql, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred'); 
-      consoleLog("Internal SQL Error (Check SQL Server)! (BillingReport) - "+getTime()) ;return;
+      consoleLog("Internal SQL Error (Check SQL Server)! (BillingReport) - "+getTime());
+      errorState = false;
+      return;
     }
+
+    errorState = true;
 
     var promises = result.map(entry => queryHistory(entry));
 
