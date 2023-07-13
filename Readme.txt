@@ -5,9 +5,9 @@ This is both Server/Client sides for a hanger log website I'm working on for my 
 
 
 TODO
+-BUG - audit page not properly refereshing again...
+
 -Billables Printout
 --implement historical parts
-
--Investigate and Fix MultiAdd issue
 
 -Add Authentication System
