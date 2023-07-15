@@ -1,11 +1,11 @@
-/*I broke down and stop learning php. This will have to do instead
+/*I broke down and stopped learning php. This will have to do instead
 
 This script is the server for this project. It is intended to be run within NodeJS
 
 I got most of this off the internet - Brandt Norwood
 */
 
-
+//Defining and config for SQL and Express(http) varables
 const express = require('express');
 var mysql = require('mysql2');
 const app = express();
@@ -16,11 +16,15 @@ var con = mysql.createPool({
   user : "hangerLogServer",
   password: "6ceyxhuv",
   database: "FJCHangerLog",
-  insecureAuth: true
+  insecureAuth: true,
+  multipleStatements: true
 });
 
 let errorState = false;
 let retryCount = 0;
+
+/*  This seams weird but it was a cleaver way to prevent the program from crashing if it either comes 
+    online before SQL or if SQL drops out for a short time while the server is online. */
 function establishConnection() {
   con.getConnection((err, connection) => {
     if (err) {
@@ -39,13 +43,14 @@ function establishConnection() {
     connection.release();
   });
 }
+establishConnection(); //actually run the connection
 
-establishConnection();
+
 
 var fullDebug = true;
 var consoleList = new Array();
 
-//get sql formatted datetime (used for debug too)
+//get sql formatted datetime (used for debug outputs too)
 function getTime(){
   const now = new Date(Date.now());
   const formattedDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
@@ -63,6 +68,8 @@ function consoleLog(output){
   consoleList.push(output);
 }
 
+
+
 //slay the god forsaken CORS dragon
 //ALL HAIL CHAT GPT for this solution
 app.use((req, res, next) => {
@@ -72,10 +79,10 @@ app.use((req, res, next) => {
   next();
 });
 
-//this one is for troubleshooting. Just contact the server in the browser on port 3000
-app.get("/", (req,res) => {
-  //consoleLog("Contacted in browser - "+ getTime());       Don't think i need this for now
 
+
+//this one is for remote troubleshooting. Just contact the server in the browser on port 3000
+app.get("/", (req,res) => {
   //takes the consoleLog array and makes it into a displatable format
   var output = ["Hanger Log Server<br>"];
     if (errorState){output[0] += "----------  Im Awake! - " + getTime() + "  ----------";}
@@ -88,6 +95,7 @@ app.get("/", (req,res) => {
   res.send(outputString);
 });
 app.use(express.json());
+
 
 //toggles the debug feature if you go to - host:3000/toggleDebug
 app.get("/toggleDebug", (req,res) => {
@@ -144,7 +152,7 @@ app.get('/hangerData', (req, res) => {
     // Create a JSON object
     const json = { sqlTable };
 
-    consoleLog(`Server Table Requested - ${getTime()}`);
+    consoleLog(`Table Requested - ${getTime()}`);
 
     // Respond with the JSON object
     res.json(json);
@@ -162,7 +170,7 @@ app.put('/singleAdd',(req,res) =>{
 
   //adds aircraft to selected hanger in sql table
   var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-    newTail +"' AND BlockOut IS NULL";
+    newTail +"' AND BlockOut IS NULL;";
 
   con.query(sql, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL');
@@ -171,7 +179,7 @@ app.put('/singleAdd',(req,res) =>{
       return;
     }
 
-    var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"')";
+    var sql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ('"+ newTail +"', "+toHanger+", '"+ getTime() +"');";
   
     con.query(sql, function (err, result) {
       if (err){res.status(500).send('An Internal Database Error Occurred While Inserting SQL');
@@ -188,7 +196,7 @@ app.put('/singleAdd',(req,res) =>{
   res.send("Put request received");
 
   //console output
-  consoleLog(`Server compleated Add function - `+ getTime());
+  consoleLog(`(Add/Remove) compleated Add function - `+ getTime());
   if(fullDebug){consoleLog("\t+Added " + newTail + " to hanger " + toHanger);}
 });
 
@@ -202,7 +210,7 @@ app.delete('/singleRemove',(req,res) =>{
   var newTail = newData[1];
 
   var sql = "UPDATE AircraftMovements SET BlockOut = '"+ getTime() +"' WHERE TailNumber = '"+ 
-    newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger;
+    newTail +"' AND BlockOut IS NULL AND HangerID = " + toHanger + ";";
 
   con.query(sql, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
@@ -216,109 +224,79 @@ app.delete('/singleRemove',(req,res) =>{
   res.send("Remove request received");
 
   //console output
-  consoleLog(`Server compleated Remove function - `+ getTime());
+  consoleLog(`(Add/Remove) compleated Remove function - `+ getTime());
   if(fullDebug){consoleLog("\t-Removed " + newTail + " from hanger " + toHanger);}
 
 });
 
 
-//handles new data being given to the server from the audit table menu
-app.post('/auditData', (req, res) =>{
+app.post('/auditData', (req,res) => {
 
   var newData = req.body;
 
-  //retrive data
   var selectHanger = newData.selectedHanger;
   var addList = newData.addList;
   var removeList = newData.removeList;
   var confirmationData = newData.confirmKey;
 
-  consoleLog("Server Table Updated (audit) - " + getTime());
-
   //Basiclly just a check digit (for some fun google these numbers ;)
   if (JSON.stringify(confirmationData) === JSON.stringify(["821393","3162010","2272358"])){
+    var sql = "";
 
     //builds the sql query for removing aircraft from other hangers that are being added to this one
     if (addList.length > 0){
-      var Updatesql = "UPDATE AircraftMovements SET BlockOut = '" + getTime() + "' WHERE ";
+      var Updatesql = "UPDATE AircraftMovements SET BlockOut = '" + getTime() + "' WHERE (";
       var tailClauses = addList.map(tail => "TailNumber = '" + tail + "'");
       Updatesql += tailClauses.join(" OR ");
-      Updatesql += " AND BlockOut IS NULL";
+      Updatesql += ") AND BlockOut IS NULL;";
 
       //builds sql query for adding aircraft
       var Insertsql = "INSERT INTO AircraftMovements (tailnumber, hangerid, blockin) VALUES ";
       tailClauses = addList.map(tail => "('"+ tail + "', " + selectHanger + ", '" + getTime() + "')");
       Insertsql += tailClauses.join(" , ");
+      Insertsql += ";"
+
+      sql += Updatesql;
+      sql += Insertsql;
     }
 
     if (removeList.length > 0){
       //builds sql query for removing aircraft
-      var Removesql = "UPDATE AircraftMovements SET BlockOut = '" + getTime() + "' WHERE ";
+      var Removesql = "UPDATE AircraftMovements SET BlockOut = '" + getTime() + "' WHERE (";
       tailClauses = removeList.map(tail => "TailNumber = '" + tail + "'");
       Removesql += tailClauses.join(" OR ");
-      Removesql += " AND BlockOut IS NULL";
+      Removesql += ") AND BlockOut IS NULL;";
+
+      sql += Removesql;
     }
 
-    //does the actual query
-    if (Updatesql != null && Insertsql != null){
-      con.query(Updatesql, function (err) {
-        if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
-          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
-          errorState = false;
-          return;
-        }
-        con.query(Insertsql, function(err){
-          if (err){res.status(500).send('An Internal Database Error Occurred While Inserting SQL'); 
-            consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
-            errorState = false;
-            return;
-          }
+    console.log(sql);
 
-          if(fullDebug){    //some console stuff
-            for (tail of addList){
-              consoleLog("\t+Added " + tail + " to Hanger " + selectHanger);
-            }
-          }
-          if (Removesql != null){   //remove query
-            con.query(Removesql, function(err){
-              if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
-                consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
-                errorState = false;
-                return;
-              }
+    con.query(sql, function (err) {
+      if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
+        consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
+        if(fullDebug){consoleLog("\t"+err);}
+        errorState = false;
+        return;
+      }
+      consoleLog("(Audit) Updated Hanger "+selectHanger+" (audit) - " + getTime());
 
-              if(fullDebug){    //some console stuff
-                for (tail of removeList){
-                  consoleLog("\t-Removed " + tail + " from Hanger " + selectHanger);
-                }
-              }
-            })
-          }
-        })
-      });
-    } else if (Removesql != null){  //remove query if add list is empty
-      con.query(Removesql, function(err){
-        if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
-          consoleLog("Internal SQL Error (Check SQL Server)! (Audit) - "+getTime());
-          errorState = false;
-          return;
-        }
+      res.send("audit info received");
 
-        if(fullDebug){    //some console stuff
-          for (tail of removeList){
-            consoleLog("\t-Removed " + tail + " from Hanger " + selectHanger);
-          }
+      if(fullDebug){    //some console stuff
+        for (tail of addList){
+          consoleLog("\t+Added " + tail + " to Hanger " + selectHanger);
         }
-      });
-    }
-  }else {
-    consoleLog("Corrupted Audit data received!");
+        for (tail of removeList){
+          consoleLog("\t-Removed " + tail + " from Hanger " + selectHanger);
+        }
+      }
+    })
+  }
+  else {
+    consoleLog("--Corrupted Audit data received!--");
     res.status(400);
   }
-
-
-  //prevents hanging processes
-  res.send("audit info received");
 });
 
 
@@ -328,39 +306,22 @@ app.post('/search', (req, res) =>{
   var tailNumber = req.body.tailInput;
   var dateRange = "";
 
-  if(timeSelect == 1){//Week
-    const now = new Date();
-    now.setDate(now.getDate() - 7);
-    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
-  }
-  if(timeSelect == 2){//Month
-    const now = new Date();
-    now.setMonth(now.getMonth() - 1);
-    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
-  }
-  if(timeSelect == 3){//3 Month
-    const now = new Date();
-    now.setMonth(now.getMonth() - 3);
-    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
-  }
-  if(timeSelect == 4){//6 Month
-    const now = new Date();
-    now.setMonth(now.getMonth() - 6);
-    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
-  }
-  if(timeSelect == 5){//Year
-    const now = new Date();
-    now.setFullYear(now.getFullYear() - 1);
-    dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
-  }
+  const now = new Date();
+  if(timeSelect == 1){now.setDate(now.getDate() - 7);}//Week
+  if(timeSelect == 2){now.setMonth(now.getMonth() - 1);}//Month
+  if(timeSelect == 3){now.setMonth(now.getMonth() - 3);}//3 Month
+  if(timeSelect == 4){now.setMonth(now.getMonth() - 6);}//6 Month
+  if(timeSelect == 5){now.setFullYear(now.getFullYear() - 1);} //Year
+  dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
+
   var sql;
 
   if (timeSelect == 6){
     sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM AircraftMovements WHERE TailNumber = '"+
-      tailNumber+"'"; //you wouldn't beleve the bug I found here
+      tailNumber+"';"; //you wouldn't beleve the bug I found here
   } else {
     sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM AircraftMovements WHERE TailNumber = '"+
-      tailNumber +"' AND BlockIn > '"+ dateRange +"'";
+      tailNumber +"' AND BlockIn > '"+ dateRange +"';";
   }
 
   con.query(sql, function (err, result) {
@@ -374,20 +335,31 @@ app.post('/search', (req, res) =>{
     res.send({result});
   });
 
-  consoleLog("Server asked for search results - " + getTime());
+  consoleLog("(Search) - " + getTime());
   if (fullDebug){consoleLog("\tTail - '" + tailNumber + "' TimeZone - '"+timeSelect+"'")}
 });
 
+//function to tame the async nature of js
 function queryHistory(entry) {
   return new Promise((resolve, reject) => {
     var newArray = new Array();
 
-    const now = new Date();
-    now.setMonth(now.getMonth() - 1);
+    const now = new Date(entry.BlockIn);
     dateRange = now.toISOString().slice(0, 19).replace('T', ' ');
-    sql = "SELECT TailNumber, HangerID, BlockIn, BlockOut FROM AircraftMovements WHERE TailNumber = '" +
-      entry.TailNumber + "' AND BlockIn > '" + dateRange + "'";
 
+    sql =  "WITH RECURSIVE CTE AS ("+
+                'SELECT TailNumber, HangerID, BlockIn, BlockOut '+
+                'FROM AircraftMovements '+
+                "WHERE TailNumber = '"+ entry.TailNumber +"' "+
+                  "AND BlockOut BETWEEN '"+ dateRange +"' AND DATE_ADD('"+ dateRange +"', INTERVAL 2 HOUR) "+
+              'UNION ALL '+
+                'SELECT am.TailNumber, am.HangerID, am.BlockIn, am.BlockOut '+
+                'FROM CTE c '+
+                'JOIN AircraftMovements am ON c.TailNumber = am.TailNumber '+
+                'WHERE am.BlockOut BETWEEN c.BlockIn AND DATE_ADD(c.BlockIn, INTERVAL 2 HOUR)'+
+            ')'+
+            ' SELECT * FROM CTE;';
+             
     con.query(sql, function (err, results) {
       if (err) {
         reject(err);
@@ -401,6 +373,7 @@ function queryHistory(entry) {
   });
 }
 
+
 app.post('/billing', (req, res) => {
   var startDate = req.body.startDate;
   var endDate = req.body.endDate;
@@ -409,7 +382,7 @@ app.post('/billing', (req, res) => {
   sql = "SELECT am1.TailNumber, am1.HangerID, am1.BlockIn, am1.BlockOut FROM AircraftMovements AS am1 WHERE" +
     " am1.BlockOut > '" + startDate + "' AND am1.BlockOut < '" + endDate + "'AND NOT EXISTS (SELECT 1 FROM AircraftMovements AS" +
     " am2 WHERE am2.TailNumber = am1.TailNumber AND am2.BlockIn > DATE_SUB(am1.BlockOut, INTERVAL 2 HOUR)AND" +
-    " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR))";
+    " am2.BlockIn < DATE_ADD(am1.BlockOut, INTERVAL 2 HOUR));";
 
   con.query(sql, function (err, result) {
     if (err){res.status(500).send('An Internal Database Error Occurred'); 
@@ -419,7 +392,6 @@ app.post('/billing', (req, res) => {
     }
 
     errorState = true;
-
     var promises = result.map(entry => queryHistory(entry));
 
     Promise.all(promises)
@@ -428,13 +400,14 @@ app.post('/billing', (req, res) => {
       })
       .catch(err => {
         // Handle any error that occurred during the queries
-        console.error(err);
+        console.error(err); res.status(500).send('An Internal Database Error Occurred');
       });
   });
 
-  consoleLog("Billing results requested - " + getTime());
+  consoleLog("(Billing) requested - " + getTime());
   if (fullDebug) { consoleLog("\tStartDate=" + startDate + " EndDate=" + endDate + " ShowTennents=" + showTennents); }
 });
+
 
 
 // Start the server
