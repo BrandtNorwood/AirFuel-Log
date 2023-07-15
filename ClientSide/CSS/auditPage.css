@@ -40,16 +40,16 @@ form{
   text-align: center;
   margin: 1%;
   border-radius: 0.4vmin;
+  height: 6%;
 }
 
 #addTail{
-  height: 7%;
+  margin-top: 3%;
   width: 100%;
 }
 
 #menu{
   width: 30%;
-  height: 7%;
 }
 
 
@@ -94,10 +94,26 @@ div.auditTable ul.red{
   background-color: #c50000;
 }
 
+@media screen and (max-height: 700px) {
+  .button {
+    height: 20%;
+  }
+
+  #tailInput{
+    height: 7%;
+    width: 100%;
+    margin-bottom: 5%;
+  }
+
+  #addTail{
+    height: 12%;
+  }
+}
+
 @media screen and (max-width: 700px) {
   #menu {
     width: 98%;
-    height: 9%;
+    height: 8%;
     margin-top: 3%;
     margin-bottom: 3%;
   }
@@ -107,8 +123,12 @@ div.auditTable ul.red{
     width: 100%;
     height: 4%;
   }
+  
+  .hangerDisplay{
+    width: 35%;
+  }
 
-  .split{
-    height: 63%;
+  .menuDisplay{
+    width: 55%;
   }
 }
