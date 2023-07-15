@@ -31,10 +31,34 @@ table{
     table th{ padding: 0.5%; }
 }
 
+.searchBar {
+  display: block;
+  float: right;
+  margin: 1%;
+  font-size: large;
+}
+
+table .highlight{
+  background-color: #ff9900
+}
+
+ul.topnav img{
+  display:none;
+}
+
 @media screen and (max-width: 700px) {
   table th{
-    padding: 4vh;
-    padding-top: 2vh;
-    padding-bottom: 2vh;
+    padding: 3.5vh;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+  }
+
+  table td{
+    padding-top: 1.3vh;
+    padding-bottom: 1.3vh;
+  }
+
+  .searchBar {
+    display: none;
   }
 }
