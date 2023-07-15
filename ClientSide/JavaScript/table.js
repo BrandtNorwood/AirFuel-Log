@@ -1,16 +1,55 @@
 //change these two as needed
-const Url = "http://localhost:3000/" //this will be the data base till i get my shit together
+const Url = "http://localhost:3000/" //"http://10.1.0.52:3000/"//this is the server root url (extensions will be added by other scripts)
 const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
 
 /* 
-    If you found this either you are dam curious or I pitty you
+    If you found this either you are a curious one, or, I pitty your new job
     Made by Brandt Norwood
-    mostly on a pair of 14 hour shifts (about 6/7/2023)
+    started on a pair of 14 hour shifts (6/7/2023)
 */
 
+//This basiclly just to call the search any time a key is pressed in the search
+function textBoxListener(){
+    var textBox = document.getElementById("searchBox");
 
+    textBox.addEventListener("input", function(e){
+        //if (e.code == "Enter"){searchHighlight();}
+        searchHighlight(textBox.value);
+    });
+}
+
+//handles search and higlighting functionality
+function searchHighlight(textBoxValue){
+    //clears all currently highlighted
+    var clearElements = document.querySelectorAll(".highlight");
+    clearElements.forEach(function(clearElements) {
+        clearElements.classList.remove("highlight");
+    });
+
+    //creates the 'rows' array which is full of the finest tr elements
+    var table = document.getElementById("table");
+    var rows = table.getElementsByTagName("tr");
+
+    //error checking, and i used this section to tamper down false results
+    if (rows.length > 0 && textBoxValue.length > 0 && textBoxValue != "N"){
+        for (row of rows){
+            var cells = row.getElementsByTagName('td');
+
+            if (cells.length > 0){
+                for (cell of cells){
+                    if (cell.textContent.includes(textBoxValue.toUpperCase())){
+                        cell.setAttribute("class","highlight"); //If this cell includes the result highlight it
+                    }
+                }
+            }
+        }               //The Great Curly Brace Cascade
+    }
+}
+
+
+//I haven't touched this code since i started the project almost a month ago and now im too scared to enter it
 function homeTable() {
-    //Start off by sending a request for data (This nearly killed me 0_0)
+    //Start off by sending a request for data (This marks the start of the great CORS war)
     fetch(Url+"hangerData")
         //initial data request and pull
         .then(function(response){
@@ -20,12 +59,15 @@ function homeTable() {
             throw new Error('"fetch" threw Json Formating error - ' + response.status + ' ' + response.statusText);
         })
         .then(function(data) {
+            var outputFeild = document.getElementById("tableSlot");
+
+            outputFeild.replaceChildren();
 
             //seperate the table from the JSON object
-            tableData = data.sqlTable
+            tableData = data.sqlTable;
 
             //create the html objects for the table
-            var table = document.createElement('table');
+            var table = document.createElement('table'); table.setAttribute("id","table")
             var tableBody = document.createElement('tbody');
 
             //defines how long to make the table
@@ -71,12 +113,12 @@ function homeTable() {
 
             //populate the table and append it to the page
             table.appendChild(tableBody);
-            document.body.appendChild(table);
+            outputFeild.appendChild(table);
         })
         .catch(function(err){
         var outputFeild = document.getElementById("tableSlot");
 
         outputFeild.replaceChildren();
         outputFeild.appendChild(document.createTextNode(err));
-        });
+    });
 }
