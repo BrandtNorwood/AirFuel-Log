@@ -1,5 +1,5 @@
 //change these two as needed
-const Url = "http://localhost:3000/" //this is the server root url (extensions will be added by other scripts)
+const Url = "http://localhost:3000/" //"http://10.1.0.52:3000/"//this is the server root url (extensions will be added by other scripts)
 const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
 
 
@@ -63,7 +63,7 @@ function runSearch() {
                 BlockIn.appendChild(document.createTextNode(formattedInDate));
             var BlockOut = document.createElement('th');
                 if(entry.BlockOut != null){
-                    var BlockOutTimeElemet = new Date(entry.BlockIn);
+                    var BlockOutTimeElemet = new Date(entry.BlockOut);
                     BlockOutTimeElemet.setHours(BlockOutTimeElemet.getHours() - 5);
                     var options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: 'America/Chicago'};
                     var formattedOutDate = BlockOutTimeElemet.toLocaleString('en-US', options);
