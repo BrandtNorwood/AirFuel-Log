@@ -6,6 +6,6 @@ This is both Server/Client sides for a hanger log website I'm working on for my 
 
 TODO
 -Billables Printout
---implement historical parts
+--Bug: query depth over 1001 crash the system. Find an elegant solution that's not just increasing the max recursion depth
 
 -Add Authentication System
