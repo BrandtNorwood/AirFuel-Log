@@ -1,8 +1,6 @@
-Hello! 
+Hello! This Project is no longer up to date with development and instead sits on the version that is live.
 
-This is both Server/Client sides for a hanger log website I'm working on for my work. It will eventually have a database hooked up to it.
--Brandt Norwood
-
+This is both Server/Client sides for a hanger log website I'm working on for my work.
 
 TODO
 -Billables Printout
