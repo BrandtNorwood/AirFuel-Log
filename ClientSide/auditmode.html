@@ -8,18 +8,21 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="CSS/defaultLook.css">
         <link rel="stylesheet" href="CSS/auditPage.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src='JavaScript/topNav.js'></script>
         <script src="JavaScript/audit.js"></script>
     </head>
-    <body>
+    <body onload="retreiveOG()">
         <header>
             <nav>
-                <ul class = "topnav">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="addDelete.html">Add / Delete</a></li>
-                    <li><a class = "active" href="auditmode.html">Audit</a></li>
-                    <li><a href="history.html">History</a></li>
-                    <li><a href="billingReport.html">Billable Report</a></li>
-                    <li><img src="Logo_Airplane_Globe_Color.png"></img></li>
+                <ul class = "topnav" id="myTopnav">
+                  <a href="index.html">Home</a>
+                  <a href="addDelete.html">Add / Delete</a>
+                  <a class = "active" href="auditmode.html">Audit</a></li>
+                  <a href="history.html">History</a>
+                  <a href="billingReport.html">Billable Report</a>
+                  <img src="Logo_Airplane_Globe_Color.png"></img>
+                  <a class="icon" onclick="topNav()"> <i class="fa fa-bars"></i> </a>
                 </ul>
             </nav>
         </header>
@@ -29,16 +32,9 @@
             <div class = "split hangerDisplay">
                 <select name="hangerSelect" id="hangerSelect">
                     <option value="Ramp" selected="selected">Ramp</option>
-                    <script>auditMenu();</script>
                 </select>
+                <script>hangerSelectMenu();</script>
                 <div class = "auditTable" id = "auditTable"></div>
-
-                This Page is currently being reworked
-
-                <script> 
-                    //lets flip... i mean, create some tables
-                    //auditTable();
-                </script>
             </div>
 
             <div class="split menuDisplay">
@@ -49,11 +45,12 @@
                     <script>textBoxListener();</script>
                 </form>
                 <div style="border: 0.2vh solid white; padding: 1%;">
-                    <input id="menu" type="button" class="button" onclick="alert('As you enter aircraft tails you will see them turn green in the left column. if they are not highlighted green they will be deleted upon hanger submition')"value="Help">
-                    <input id="menu" type="button" class="button" value="Submit" onclick="sendHangerList()">
-                    <input id="menu" type="button" class="button" value="Clear Changes" onclick="resetTable()">
+                    <input id="menu" type="button" class="button" value="Clear Changes" onclick="clearChanges()">
+                    <input id="menu" type="button" class="button" value="Submit" onclick="submitChanges()">
+                    <input id="menu" type="button" class="button" value="Undo" onclick="undoSubmit()">
                     <!--input type="button" class="button" value="GreenList Them All!" onclick="greenListAll()"-->
                 </div>
+                <div id="errorPlate"></div>
             </div>
           </main>
     </body>

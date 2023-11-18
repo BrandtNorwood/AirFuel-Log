@@ -1,6 +1,6 @@
 //change these two as needed
-const Url = "http://localhost:3000/" //"http://10.1.0.52:3000/"//this is the server root url (extensions will be added by other scripts)
-const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
+const Url = 'http://'+ window.location.host + ':3000/';//this is the server root url (extensions will be added by other scripts)
+var hangers = []; //when the jet center gets more hangers change this line
 
 
 const topLabels = ["Tail Number","Hanger","Time In","Time Out"];
@@ -31,6 +31,7 @@ function runSearch() {
     })
     .then(function(data) {
         var results = data.result;
+        hangers = data.hangers
 
 
         table.replaceChildren();

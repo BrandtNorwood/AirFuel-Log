@@ -75,6 +75,17 @@ div.auditTable{
     padding: 2vh;
   }
 
+  @media screen and (max-height: 700px) {
+    .button {
+      height: 10%;
+    }
+  
+    #tailInput{
+      height: 7%;
+      width: 100%;
+      margin-bottom: 5%;
+    }
+  }
 
   @media screen and (max-width: 700px) {
     .button {
@@ -89,8 +100,12 @@ div.auditTable{
       width: 100%;
       height: 4%;
     }
+
+    .hangerDisplay{
+      width: 35%;
+    }
   
-    .split{
-      height: 63%;
+    .menuDisplay{
+      width: 55%;
     }
   }

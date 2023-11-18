@@ -42,17 +42,20 @@ div.billingTable {
     padding: 0;
 }
 
-div.billingTable ol{
+div.billingTable ul{
     padding: 0;
     list-style-type: none;
 }
 
 div.billingTable ol #aircraftHistory{
     margin-left: 5%;
+    border: none;
+    padding: 0;
+    list-style: none;
 }
   
-div.billingTable ul{
-    border: 0.2vh solid var(--background);
+div.billingTable ol{
+    border: 0.4vh solid var(--background);
     border-radius: 1vmin;
     background-color: var(--colorPop);
     padding: 2vh;
@@ -64,6 +67,9 @@ div.billingTable ul{
         display: block!important; 
         width: 90%;
         color: black;
+        padding:0;
+        border: none;
+        font-size: 10px;
     }
 }
 

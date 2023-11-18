@@ -1,6 +1,6 @@
 //change these two as needed
-const Url = "http://localhost:3000/" //"http://10.1.0.52:3000/"//this is the server root url (extensions will be added by other scripts)
-const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
+const Url = 'http://'+ window.location.host + ':3000/';//this is the server root url (extensions will be added by other scripts)
+var hangers = [];
 
 /* 
     If you found this either you are a curious one, or, I pitty your new job
@@ -14,7 +14,7 @@ function textBoxListener(){
 
     textBox.addEventListener("input", function(e){
         //if (e.code == "Enter"){searchHighlight();}
-        searchHighlight(textBox.value);
+        searchHighlight(textBox.value.toUpperCase());
     });
 }
 
@@ -37,7 +37,7 @@ function searchHighlight(textBoxValue){
 
             if (cells.length > 0){
                 for (cell of cells){
-                    if (cell.textContent.includes(textBoxValue.toUpperCase())){
+                    if (cell.textContent.includes(textBoxValue)){
                         cell.setAttribute("class","highlight"); //If this cell includes the result highlight it
                     }
                 }
@@ -65,6 +65,7 @@ function homeTable() {
 
             //seperate the table from the JSON object
             tableData = data.sqlTable;
+            hangers = data.hangers;
 
             //create the html objects for the table
             var table = document.createElement('table'); table.setAttribute("id","table")

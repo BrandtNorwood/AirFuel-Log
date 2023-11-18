@@ -1,7 +1,6 @@
 //change these two as needed
-const Url = "http://localhost:3000/" //this is the server root url (extensions will be added by other scripts)
-const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
-
+const Url = 'http://'+ window.location.host + ':3000/';//this is the server root url (extensions will be added by other scripts)
+var hangers = []; //when the jet center gets more hangers change this line
 
 //This is for populating the Hanger selection menu in the Audit page
 function textBoxListener(){
@@ -15,13 +14,29 @@ function textBoxListener(){
 
 //Populates the Hanger Select menu from the hangers constant
 function selectMenu(){
-    var hangerMenu = document.getElementById("hangerSelect");
+    fetch(Url+"hangerData")
+    .then(function(response){
+        if(response.ok){
+            return response.json();
+        }
+        throw new Error('"fetch" threw Json Formating error - ' + response.status + ' ' + response.statusText);
+    })
+    .then(function(data){
+        hangers = data.hangers;
 
-    for (var i=1; i < hangers.length; i++){
-        hangerMenu.options[hangerMenu.options.length] = new Option(hangers[i]);
-    }
+        var hangerMenu = document.getElementById("hangerSelect");
 
-    hangerMenu.onchange = function(){buildTable();}
+        for (var i=1; i < hangers.length; i++){
+            hangerMenu.options[hangerMenu.options.length] = new Option(hangers[i]);
+        }
+        hangerMenu.onchange = function(){buildTable();}
+    })
+    .catch(function(err){
+        var outputFeild = document.getElementById("auditTable");
+
+        outputFeild.replaceChildren();
+        outputFeild.appendChild(document.createTextNode(err));
+    });
 }
 
 
@@ -63,11 +78,10 @@ function addAircraft(){
         }
 
         //sends selected hanger and tail to server to be added
-        var sendData = [selectedHanger,inputTailValue];
         fetch(Url + "singleAdd", {
             method: "PUT", 
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(sendData)
+            body: JSON.stringify({selectedHanger,inputTailValue})
         })
         .then(() => {
             buildTable(); //refreshes table
@@ -100,11 +114,11 @@ function removeAircraft(){
         }
 
         //sends selected hanger and tail to server to be added
-        var sendData = [selectedHanger,inputTailValue];
+        //var sendData = {selectedHanger,inputTailValue};
         fetch(Url + "singleRemove", {
             method: "DELETE", 
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(sendData)
+            body: JSON.stringify({selectedHanger, inputTailValue})
         })
         .then(() => {
             buildTable(); //refreshes table
@@ -131,6 +145,7 @@ function buildTable(){
     .then(function(data){
         //seperate the table from the JSON object
         tableData = data.sqlTable;
+
         hangerSelect = document.getElementById("hangerSelect");
         outputTable = document.getElementById("auditTable");
 

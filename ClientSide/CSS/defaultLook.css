@@ -20,11 +20,15 @@ div {
   display: block;
 }
 
+main{
+  margin-top: 6vh;
+}
 
 /*nav bar*/
-ul.topnav {
-  position: static;
+.topnav {
+  position: fixed;
   top: 0;
+  left: 0;
   width: 100%;
   list-style-type: none;
   margin: 0;
@@ -33,14 +37,14 @@ ul.topnav {
   background-color: var(--backPop);
 }
 
-ul.topnav li img{
+ul.topnav img{
   width: 7vh;
   margin-top: 1vh;
   margin-right: 2vh;
   float: right;
 }
 
-ul.topnav li a {
+ul.topnav a {
   float: left;
   color: white;
   text-align: center;
@@ -48,10 +52,38 @@ ul.topnav li a {
   text-decoration: none;
 }
 
-ul.topnav li a:hover:not(.active) {
+ul.topnav a:hover:not(.active) {
   background-color: #000;
 }
 
-ul.topnav li a.active {
+ul.topnav a.active {
   background-color:var(--colorPop);
 }
+
+.topnav .icon{
+  display: none;
+}
+
+@media screen and (max-width: 700px) {
+  .topnav a:not(.active) {display: none;}
+  .topnav img{ display: none;}
+  .topnav a.icon {
+    float: right;
+    display: block;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .topnav.responsive {position: relative;}
+  .topnav.responsive .icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .topnav.responsive a {
+    float: none;
+    display: block;
+    text-align: left;
+  }
+}
+

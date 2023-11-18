@@ -1,6 +1,6 @@
 //change these two as needed
-const Url = "http://localhost:3000/" //this is the server root url (extensions will be added by other scripts)
-const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"]; //when the jet center gets more hangers change this line
+const Url = 'http://'+ window.location.host + ':3000/';//this is the server root url (extensions will be added by other scripts)
+var hangers = []; //when the jet center gets more hangers change this line
 
 //This is for detecting the enter key and handling it properly
 function textBoxListener(){
@@ -13,12 +13,29 @@ function textBoxListener(){
 
 //Populates the Hanger Select menu from the hangers constant
 function hangerSelectMenu(){
-    var hangerMenu = document.getElementById("hangerSelect");
+    fetch(Url+"hangerData")
+    .then(function(response){
+        if(response.ok){
+            return response.json();
+        }
+        throw new Error('"fetch" threw Json Formating error - ' + response.status + ' ' + response.statusText);
+    })
+    .then(function(data){
+        hangers = data.hangers;
 
-    for (var i=1; i < hangers.length; i++){
-        hangerMenu.options[hangerMenu.options.length] = new Option(hangers[i]);
-    }
-    hangerMenu.onchange = function(){clearChanges();}
+        var hangerMenu = document.getElementById("hangerSelect");
+
+        for (var i=1; i < hangers.length; i++){
+            hangerMenu.options[hangerMenu.options.length] = new Option(hangers[i]);
+        }
+        hangerMenu.onchange = function(){clearChanges();}
+    })
+    .catch(function(err){
+        var outputFeild = document.getElementById("auditTable");
+
+        outputFeild.replaceChildren();
+        outputFeild.appendChild(document.createTextNode(err));
+    });
 }
 
 //this is for highlighting tails on click
