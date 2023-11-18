@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <link rel="shortcut icon" type="image/x-icon" href="Favacon.ico">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>FJC HangerLog History</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="CSS/defaultLook.css">
+        <link rel="stylesheet" href="CSS/history.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src='JavaScript/topNav.js'></script>
+        <script src="JavaScript/history.js"></script>
+    </head>
+    <body>
+        <header>
+            <nav>
+                <ul class = "topnav" id="myTopnav">
+                  <a href="index.html">Home</a>
+                  <a href="addDelete.html">Add / Delete</a>
+                  <a href="auditmode.html">Audit</a></li>
+                  <a class = "active" href="history.html">History</a>
+                  <a href="billingReport.html">Billable Report</a>
+                  <img src="Logo_Airplane_Globe_Color.png"></img>
+                  <a class="icon" onclick="topNav()"> <i class="fa fa-bars"></i> </a>
+                </ul>
+            </nav>
+        </header>
+        <main>
+            <div style="overflow-x:auto; padding: 1vh;"></div>
+
+            <div>
+                <form onsubmit="return false;">
+                    <a>Search entries from </a> 
+                    <select name="hangerSelect" id="hangerSelect">
+                        <option value="1" selected="selected">Last Week</option>
+                        <option value="2">Last Month</option>
+                        <option value="3">Last 3 Months</option>
+                        <option value="4">Last 6 Months</option>
+                        <option value="5">Last Year</option>
+                        <option value="6">All Time</option>
+                    </select>
+
+                    <a> for </a>
+
+                    <input type="text" id = "tailInput" placeholder="Tail Number..." value="N">
+                    <input type="button" value="Search" onclick="runSearch()">
+                    <script>textBoxListener();</script>
+                </form>
+                
+                <div class="resultTable" id="resultTable"></div>
+            
+            </div>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,48 @@
+<!-- Congrats you learned how to push F12! -->
+<html>
+<head>
+  <link rel="shortcut icon" type="image/x-icon" href="Favacon.ico">
+  <title>FJC HangerLog</title>
+  <link rel="stylesheet" href="CSS/defaultLook.css">
+  <link rel="stylesheet" href="CSS/mainPage.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src='JavaScript/topNav.js'></script>
+  <script src="JavaScript/table.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+  <header>
+    <nav>
+        <ul class = "topnav" id="myTopnav">
+          <a class = "active" href="index.html">Home</a>
+          <a href="addDelete.html">Add / Delete</a>
+          <a href="auditmode.html">Audit</a></li>
+          <a href="history.html">History</a>
+          <a href="billingReport.html">Billable Report</a>
+
+          <!-- Here's your search bar Whitney (although it dosent work on mobile lol) -->
+          <div class = "searchBar">
+            <!-- BTW while the button works, it's purely for looks -->
+            <input id = "searchBox" type="text" placeholder="Search.." onclick="textBoxListener()">
+            <button onclick="searchHighlight()"><i class="fa fa-search"></i></button>
+          </div>
+
+          <img src="Logo_Airplane_Globe_Color.png"></img>
+          <a class="icon" onclick="topNav()"> <i class="fa fa-bars"></i> </a>
+        </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div style="overflow-x:auto; padding-top: 2vh;">
+      <div id="tableSlot">
+        <script> 
+          //lets flip... i mean, create some tables
+          homeTable();
+        </script>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
