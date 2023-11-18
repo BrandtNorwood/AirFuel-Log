@@ -7,7 +7,8 @@ This code is poorly documented so if you have any questions contact me at brandt
 I got most of this off the internet - Brandt Norwood
 */
 
-//Defining and config for SQL and Express(http) varables
+const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"];
+
 const express = require('express');
 const app = express();
 var mysql = require('mysql2');
@@ -52,7 +53,6 @@ establishConnection(); //actually run the connection
 
 var fullDebug = true;
 var consoleList = new Array();
-const hangers = ["Ramp","Alpha","Bravo","Charlie","Delta","Echo"];
 
 //get sql formatted datetime (used for debug outputs too)
 function getTime(){
