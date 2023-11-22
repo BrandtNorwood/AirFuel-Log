@@ -110,7 +110,7 @@ app.get("/toggleDebug", (req,res) => {
 
 
 //Handle GET hanger data request
-//Had chat GPT rewrite this to fix a bug with empty hangers
+//Had chatGPT rewrite this to fix a bug with empty hangers lol
 app.get('/hangerData', (req, res) => {
   const query = "SELECT TailNumber, HangerID FROM AircraftMovements WHERE BlockOut IS NULL;";
   con.query(query, function (err, result) {
@@ -214,12 +214,13 @@ app.delete('/singleRemove',(req,res) =>{
     if (err){res.status(500).send('An Internal Database Error Occurred While Updating SQL'); 
       consoleLog("!-Internal SQL Error (Check SQL Server)! (Remove) - "+getTime());
       errorState = false;
+
+      //required to avoid hanging client processes (maybe implement in the future)
+      res.send("Remove request received");
+
       return;
     }
   });
-
-  //required to avoid hanging client processes (maybe implement in the future)
-  res.send("Remove request received");
 
   //console output
   consoleLog(`(Add/Remove) compleated Remove function - `+ getTime());
