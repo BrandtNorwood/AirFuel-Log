@@ -186,15 +186,14 @@ app.put('/singleAdd',(req,res) =>{
       if (err){res.status(500).send('An Internal Database Error Occurred While Inserting SQL');
         consoleLog("!-Internal SQL Error (Check SQL Server)! (Add) - "+getTime());
         errorState = false;
+
+        //required to avoid hanging client processes (maybe implement in the future)
+        res.send("Put request received");
+               
         return;
       }
     });
-
   });
-
-
-  //required to avoid hanging client processes (maybe implement in the future)
-  res.send("Put request received");
 
   //console output
   consoleLog(`(Add/Remove) compleated Add function - `+ getTime());
