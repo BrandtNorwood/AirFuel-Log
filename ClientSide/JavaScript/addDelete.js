@@ -67,6 +67,12 @@ function addAircraft(){
         if (item == inputTailValue) {valueOnTable = true;}
     }
 
+    //SQL TailNumber limit is 10 characters so we check for that here.
+    if (inputTailValue.length > 10){
+        window.alert("Tail Numbers can not be longer then 10 Characters!");
+        return;
+    }
+
     if (inputTailValue != "N" && inputTailValue != "" && !valueOnTable){
 
         //finds and sets selected hanger
