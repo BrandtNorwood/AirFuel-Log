@@ -10,9 +10,9 @@ The server file "testDataBase.js" was written to be run in nodeJS and intended t
 Node JS V18.16.0 or up (obviously)
 
 -within the "node_modules" folder
-"cookie-parser": "^1.4.6",
+"cookie-parser": "^1.4.6", (Not for sure but in current pack)
 "express": "^4.18.2",
-"express-session": "^1.17.3",
+"express-session": "^1.17.3", (not likely but also currently pressent)
 "isomorphic-fetch": "^3.0.0",
 "mysql2": "^3.5.2",
 "node-fetch": "^3.3.2"
