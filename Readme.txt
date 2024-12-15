@@ -1,7 +1,5 @@
 Hello! This project is a locally hosted hanger tracking tool developed for the Fargo Jet Center. While it lacks security it is intended to be sealed from the outside world to compensate. Any questions can be directed to brandtnorwood@gmail.com
 
-NOTE: This code while not properly licensed was developed on company time and thus belongs to the Fargo Jet Center. Please seek proper permission before using.
-
 the Github page for this project can be found at https://github.com/BrandtNorwood/HangerLog-FJC
 
 The server file "testDataBase.js" was written to be run in nodeJS and intended to be contained within a folder that includes a "baseTennents.txt" file and a "node_modules" folder that contains the necessary dependencies. Dependencies were installed through NPM.
